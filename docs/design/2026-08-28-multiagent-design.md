@@ -66,6 +66,14 @@ pipeline order."
 - **Workers**: one interactive `claude --name <task>` session per task, each in
   its **own git worktree** and its **own OS terminal window**. The user can watch
   and steer any of them directly.
+- **Plugin = Node CLI + skill.** Cross-session messaging is a *Claude behavior*
+  (the `SendMessage` tool), not a Node API. So the plugin splits cleanly: a
+  deterministic **Node CLI** does all mechanical, unit-testable work (worktrees,
+  terminals, manifest I/O, hashing, merge, status, cleanup), and a **skill**
+  (`SKILL.md`) drives the orchestrator Claude — including calling `SendMessage` to
+  coordinate workers. The `Coordinator` interface (§4) describes the *outbound*
+  side as skill-driven; the *inbound* side is the filesystem (workers write
+  status/requests, the CLI reads them).
 - **Control plane = cross-session messaging.** The orchestrator addresses each
   worker by its `--name` and sends `dryrun` / `begin` / `contract bumped to vN,
   re-read` via `SendMessage`. Workers message back `done` / `blocked` / a
