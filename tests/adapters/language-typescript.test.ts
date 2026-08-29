@@ -30,3 +30,18 @@ describe('TypeScriptAdapter.gate', () => {
     expect(r.output).toMatch(/bad\.ts/);
   });
 });
+
+describe('TypeScriptAdapter metadata', () => {
+  it('exposes contract dir and globs', () => {
+    const a = new TypeScriptAdapter();
+    expect(a.id).toBe('typescript');
+    expect(a.contractDir).toBe('packages/contracts');
+    expect(a.contractGlobs).toContain('**/*.ts');
+  });
+  it('detects a repo with a tsconfig', async () => {
+    const dir = await fs.mkdtemp(join(tmpdir(), 'ma-det-'));
+    expect(await new TypeScriptAdapter().detect(dir)).toBe(false);
+    await fs.writeFile(join(dir, 'tsconfig.json'), '{}');
+    expect(await new TypeScriptAdapter().detect(dir)).toBe(true);
+  });
+});
