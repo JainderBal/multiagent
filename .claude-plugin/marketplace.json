@@ -1,0 +1,15 @@
+{
+  "name": "multiagent-marketplace",
+  "owner": {
+    "name": "JainderBal",
+    "email": "baljainder1@gmail.com",
+    "url": "https://github.com/JainderBal"
+  },
+  "plugins": [
+    {
+      "name": "multiagent",
+      "source": "./",
+      "description": "Run parallel Claude Code agents against a frozen contract layer that prevents semantic merge conflicts before any agent starts."
+    }
+  ]
+}
