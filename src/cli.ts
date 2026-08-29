@@ -8,6 +8,7 @@ import { dryrunCommand } from './commands/dryrun.js';
 import { freezeCommand } from './commands/freeze.js';
 import { agentsCommand } from './commands/agents.js';
 import { initCommand } from './commands/init.js';
+import { measureCommand } from './commands/measure.js';
 import { verifyContracts } from './core/contracts.js';
 import { loadManifest } from './core/manifest.js';
 import { join } from 'node:path';
@@ -82,6 +83,13 @@ program
   .option('--base <branch>', 'base branch to merge into', 'main')
   .action(async (manifest: string, opts: { base: string }) => {
     console.log(await mergeCommand(manifest, process.cwd(), opts.base));
+  });
+
+program
+  .command('measure <baseBranch> [branches...]')
+  .description('Measure how many of the given branches conflict when merged onto base.')
+  .action(async (baseBranch: string, branches: string[]) => {
+    console.log(await measureCommand(process.cwd(), baseBranch, branches ?? []));
   });
 
 program.parseAsync();
