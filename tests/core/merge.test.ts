@@ -26,6 +26,11 @@ async function repoWithBranches(): Promise<string> {
   await git(['checkout', '-q', '-b', 'agent/b']);
   await fs.writeFile(join(root, 'b.ts'), 'export const b: number = 3;\n');
   await git(['add', '-A']); await git(['commit', '-q', '-m', 'b']);
+  // agent/bad (from main) introduces a type error that must fail the gate
+  await git(['checkout', '-q', 'main']);
+  await git(['checkout', '-q', '-b', 'agent/bad']);
+  await fs.writeFile(join(root, 'bad.ts'), 'export const bad: number = "nope";\n');
+  await git(['add', '-A']); await git(['commit', '-q', '-m', 'bad']);
   await git(['checkout', '-q', 'main']);
   return root;
 }
@@ -64,5 +69,30 @@ describe('mergeAll', () => {
     expect(report.merged).toEqual(['a']);
     const after = await loadManifest(mPath);
     expect(after.tasks.find((t) => t.name === 'b')!.status).toBe('pending');
+  });
+
+  it('rolls back a merge whose gate fails and leaves the base clean', async () => {
+    const mPath = join(root, 'manifest.json');
+    const bad: TManifest = {
+      run: 'r', spec: 's', adapter: 'typescript', contractVersion: 1, contractHashes: {},
+      agents: [], tasks: [{
+        name: 'bad', branch: 'agent/bad', worktree: '../wt-bad', sessionName: 'bad',
+        dependsOn: [], provides: [], consumes: [], status: 'done', builtAtContractVersion: 1,
+      }],
+    };
+    await saveManifest(mPath, bad);
+    const report = await mergeAll(mPath, root, 'main', new TypeScriptAdapter());
+
+    expect(report.merged).toEqual([]);
+    expect(report.stoppedAt?.task).toBe('bad');
+    expect(report.stoppedAt?.reason).toMatch(/gate failed/);
+    // The rollback removed the bad file from the base branch.
+    await expect(fs.stat(join(root, 'bad.ts'))).rejects.toThrow();
+    // Task stays 'done', not 'merged'.
+    const after = await loadManifest(mPath);
+    expect(after.tasks[0].status).toBe('done');
+    // HEAD is back to the single base commit (merge undone).
+    const log = await execa('git', ['rev-list', '--count', 'HEAD'], { cwd: root });
+    expect(log.stdout).toBe('1');
   });
 });
