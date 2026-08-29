@@ -12,7 +12,8 @@
   "dependencies": {
     "commander": "^12.1.0",
     "zod": "^3.23.8",
-    "execa": "^9.3.0"
+    "execa": "^9.3.0",
+    "gray-matter": "^4.0.3"
   },
   "devDependencies": {
     "typescript": "^5.5.4",

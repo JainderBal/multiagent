@@ -34,6 +34,12 @@ Given a run manifest path, the pipeline is:
    rolling back any merge that fails it.
 6. **Cleanup** — `multiagent cleanup <manifest>` removes the worktrees.
 
-Never edit frozen contract files (introduced in a later milestone). Coordinate by
-messaging and by the committed manifest, never by editing another worker's files.
-Messages carry signals and pointers — never code bodies.
+Custom agents: at init, propose agents based on the spec and repo (no presets).
+The user edits `.claude/agents/*.md`. Each has a `hook` stage (pre-execution,
+per-task, pre-merge, post-merge), `blocking`, `commits`, and `workspace`. Run
+`multiagent agents .claude/agents` to see what is loaded. Run blocking pre-merge
+agents (e.g. a reviewer) before merging a branch.
+
+Never edit frozen contract files. Coordinate by messaging and by the committed
+manifest, never by editing another worker's files. Messages carry signals and
+pointers — never code bodies.
