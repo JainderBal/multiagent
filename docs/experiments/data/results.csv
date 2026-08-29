@@ -7,3 +7,6 @@ task-queue,control,1,5,4,4,100,0,yes
 task-queue,treatment,1,5,4,0,0,0,yes
 chat,control,1,6,5,5,100,6,no
 chat,treatment,1,6,5,0,0,0,yes
+inventory,control,1,6,5,5,100,8,no
+inventory,treatment,1,6,5,0,0,0,yes
+registry,barrel,1,5,4,4,100,0,yes

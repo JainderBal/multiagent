@@ -176,7 +176,8 @@ same harness (`scripts/exp/`). Raw data: `docs/experiments/data/results.csv`.
 | url-shortener | 5 | 4 | **4/4 (100%)** | no (8 errs) | 0/4 (0%) | yes |
 | task-queue | 5 | 4 | **4/4 (100%)** | yes* | 0/4 (0%) | yes |
 | chat | 6 | 5 | **5/5 (100%)** | no (6 errs) | 0/5 (0%) | yes |
-| **Total** | — | **16** | **16/16 (100%)** | 1/4 integrate | **0/16 (0%)** | **4/4 integrate** |
+| inventory | 6 | 5 | **5/5 (100%)** | no (8 errs) | 0/5 (0%) | yes |
+| **Total** | — | **21** | **21/21 (100%)** | 1/5 integrate | **0/21 (0%)** | **5/5 integrate** |
 
 \* task-queue control produced 100% text conflicts but *did* compile after
 resolving the conflict by keeping one agent's types — its modules were loosely
@@ -201,14 +202,33 @@ captures, not a rigged outcome.
    interface. The 100%→0% gap is the value the contract lock adds on top of
    isolation.
 
-### Not yet run (session rate limit hit 2026-08-29, resets overnight)
+### The limitation (barrel test) — where the lock does NOT help
 
-- **inventory** (6 modules) — agents failed mid-run on an account session limit.
-- **plugin-registry limitation test** — a deliberately adversarial scenario where
-  every module must also append to a *non-contract* shared barrel file. Expected
-  result: treatment still conflicts on the barrel (the lock only protects the
-  frozen contract surface). This honest "where it does NOT help" case is set up
-  (`scripts/exp` + scenario files) and pending the limit reset.
+A deliberately adversarial scenario: five plugins share a *frozen* `Plugin`
+contract, but every plugin must also register itself by editing a **non-contract
+shared barrel** file (`src/registry.ts`, an array everyone appends to).
+
+**Result: 4/4 (100%) text conflicts — despite the frozen contract.** Every plugin
+edited the same array location:
+
+```
+<<<<<<< HEAD
+import { greet } from './greet.js';
+export const plugins: Plugin[] = [ greet,
+=======
+import { shout } from './shout.js';
+export const plugins: Plugin[] = [ shout,
+>>>>>>> barrel/shout
+```
+
+**This is the honest boundary of the mechanism.** The contract lock prevents
+conflicts *only on the surface it freezes*. A genuinely shared, append-to-by-all
+file that isn't part of the contract still collides exactly as it would without the
+tool. In practice this means a decomposition should either (a) avoid shared mutable
+registries (use per-module files auto-discovered, or dependency injection), or
+(b) treat the registry itself as a contract surface — which is why the real tool
+lets you freeze any file, not just types. Freezing is only as good as *what* you
+freeze.
 
 ### Threats to validity
 

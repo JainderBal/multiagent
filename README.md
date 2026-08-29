@@ -130,25 +130,28 @@ condition** — control (each invents the shared interface) vs. treatment (a fro
 contract they import). Full methodology and prior-art survey in
 [`docs/experiments/2026-08-28-contract-lock-experiment.md`](docs/experiments/2026-08-28-contract-lock-experiment.md).
 
-Scaled across **four domains** (expense tracker, URL shortener, task queue, chat;
-4–6 modules each), each built by **independent sub-agents per module per
-condition** (~40 agents), measured with the shipped harness (`scripts/exp/`, data
+Scaled across **five domains** (expense tracker, URL shortener, task queue, chat,
+inventory; 4–6 modules each), each built by **independent sub-agents per module per
+condition** (~60 agents), measured with the shipped harness (`scripts/exp/`, data
 in `docs/experiments/data/results.csv`):
 
 | Condition | Text-conflict rate (`multiagent measure`) | Integrated `tsc --noEmit` |
 |---|---|---|
-| **Without** contract lock | **100%** — 16/16 PRs conflicted across all 4 domains | **fails in 3/4** (agents disagreed on field names, value shapes, sync/async, class vs functions) |
-| **With** contract lock | **0%** — 0/16 | **passes in 4/4** — working integrated systems |
+| **Without** contract lock | **100%** — 21/21 PRs conflicted across all 5 domains | **fails in 4/5** (agents disagreed on field names, value shapes, sync/async, class vs functions) |
+| **With** contract lock | **0%** — 0/21 | **passes in 5/5** — working integrated systems |
 
 **This is the head-to-head with the open-source tools:** Claude Squad, Conductor,
 Nimbalyst and the other worktree launchers provide *exactly* the "without" row —
 independent agents in isolated worktrees, no shared interface. The 100%→0% gap is
-what the contract lock adds on top of isolation. Full analysis, prior-art survey,
-and honest limitations (single model; the "without" 100% partly reflects agents
-each authoring the shared file) in
+what the contract lock adds on top of isolation.
+
+**Where it does NOT help (an honest limitation test):** a sixth scenario forced
+five plugins that share a *frozen* contract to also edit a *non-contract* shared
+barrel file. They still conflicted **100%** on the barrel — the lock only protects
+the surface you freeze; genuinely shared mutable files outside the contract still
+collide. Full analysis, prior-art survey, and threats to validity (single model;
+the "without" 100% partly reflects agents each authoring the shared file) in
 [`docs/experiments/2026-08-28-contract-lock-experiment.md`](docs/experiments/2026-08-28-contract-lock-experiment.md).
-A larger inventory scenario and a deliberately adversarial "shared barrel"
-limitation test are set up and pending an account rate-limit reset.
 
 ## 6. Honest limitations
 
