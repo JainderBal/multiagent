@@ -4,6 +4,7 @@ import { materialize } from './commands/materialize.js';
 import { cleanup } from './commands/cleanup.js';
 import { status } from './commands/status.js';
 import { mergeCommand } from './commands/merge.js';
+import { dryrunCommand } from './commands/dryrun.js';
 import { WindowsTerminals } from './adapters/terminals-windows.js';
 
 const program = new Command();
@@ -28,6 +29,13 @@ program
   .description('Remove all task worktrees.')
   .action(async (manifest: string) => {
     await cleanup(manifest, process.cwd());
+  });
+
+program
+  .command('dryrun <manifest>')
+  .description('Report which agents have stated an intent plan.')
+  .action(async (manifest: string) => {
+    console.log(await dryrunCommand(manifest));
   });
 
 program

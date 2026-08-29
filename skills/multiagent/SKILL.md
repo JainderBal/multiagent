@@ -1,25 +1,33 @@
 ---
 name: multiagent
-description: Run parallel Claude Code agents against a frozen contract layer. Milestone 1 covers materialize/status/cleanup only.
+description: Run parallel Claude Code agents against a frozen contract layer. Covers materialize, dry run, merge (with typecheck gate), status, and cleanup.
 ---
 
-# multiagent (Milestone 1)
+# multiagent
 
-You are the orchestrator. Milestone 1 exercises the mechanical skeleton only —
-no decomposition or contracts yet.
+You are the orchestrator. You coordinate worker agents that each work in their
+own git worktree and terminal window. You never edit their files; you coordinate
+by cross-session messaging and by the committed run manifest.
 
-Requirements: Claude Code v2.1.234+ on Windows (for later cross-session
-messaging), Node 20+, pnpm, and Windows Terminal (`wt.exe`) on PATH.
+Requirements: Claude Code v2.1.234+ on Windows (cross-session messaging),
+Node 20+, pnpm, and Windows Terminal (`wt.exe`) on PATH.
 
-Given a manifest path:
-1. Run `multiagent materialize <manifest>` — creates one worktree + one terminal
-   window per task, each running `claude --name <task>`.
-2. Each worker session is instructed (by its task, in a later milestone) to wait
-   for a `begin` message before writing. For now, message each worker yourself.
-3. Run `multiagent status <manifest>` to see the table.
-4. Run `multiagent merge <manifest> --base main` to merge completed tasks in
-   dependency order, one at a time, with a typecheck gate after each.
-5. Run `multiagent cleanup <manifest>` to remove worktrees.
+Given a run manifest path, the pipeline is:
 
-Never edit frozen contract files (introduced in a later milestone). Coordinate
-by messaging and by the committed manifest, never by editing another worker's files.
+1. **Materialize** — `multiagent materialize <manifest>` creates one worktree +
+   one terminal window per task, each running `claude --name <task>`.
+2. **Dry run** — message each worker: "state your plan into `plans/<task>.md`,
+   write no code, then stop." Run `multiagent dryrun <manifest>` to see who has
+   stated intent. This is Checkpoint 3 — the user approves before you continue.
+3. **Begin** — message each worker to start. They build against the frozen
+   contracts (a later milestone) and report status.
+4. **Status** — `multiagent status <manifest>` prints the aggregate table,
+   marking `done` tasks whose dependencies are merged as `-> mergeable`.
+5. **Merge** — `multiagent merge <manifest> --base main` merges completed tasks
+   in dependency order, one at a time, running a typecheck gate after each and
+   rolling back any merge that fails it.
+6. **Cleanup** — `multiagent cleanup <manifest>` removes the worktrees.
+
+Never edit frozen contract files (introduced in a later milestone). Coordinate by
+messaging and by the committed manifest, never by editing another worker's files.
+Messages carry signals and pointers — never code bodies.
