@@ -7,6 +7,7 @@ import { mergeCommand } from './commands/merge.js';
 import { dryrunCommand } from './commands/dryrun.js';
 import { freezeCommand } from './commands/freeze.js';
 import { agentsCommand } from './commands/agents.js';
+import { initCommand } from './commands/init.js';
 import { verifyContracts } from './core/contracts.js';
 import { loadManifest } from './core/manifest.js';
 import { join } from 'node:path';
@@ -34,6 +35,13 @@ program
   .description('Remove all task worktrees.')
   .action(async (manifest: string) => {
     await cleanup(manifest, process.cwd());
+  });
+
+program
+  .command('init <decomposition> <runDir>')
+  .description('Build a run (manifest + task files) from a decomposition JSON.')
+  .action(async (decomposition: string, runDir: string) => {
+    console.log(await initCommand(decomposition, runDir));
   });
 
 program

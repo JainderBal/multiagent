@@ -12,6 +12,16 @@ by cross-session messaging and by the committed run manifest.
 Requirements: Claude Code v2.1.234+ on Windows (cross-session messaging),
 Node 20+, pnpm, and Windows Terminal (`wt.exe`) on PATH.
 
+## Decomposition (Checkpoint 1)
+
+Map the repo (repomix), then split the spec into tasks that can be built in
+parallel. Each task gets a kebab-case name, its dependencies, and the contract
+symbols it `provides`/`consumes`. Keep the graph acyclic. Two tasks may touch the
+same file, but only ONE may define any given contract symbol — freeze the shared
+interface so the rest can proceed in parallel. Write the decomposition as JSON and
+run `multiagent init <decomposition.json> <runDir>`; the user approves the task
+list and graph before you extract and freeze contracts.
+
 Given a run manifest path, the pipeline is:
 
 1. **Freeze contracts** — once the contract layer exists, run
