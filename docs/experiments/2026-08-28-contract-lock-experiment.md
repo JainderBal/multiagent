@@ -238,3 +238,62 @@ uncoordinated default). The robust, model-independent claim is the **direction a
 consistency**: freezing the interface eliminated the interface conflict in every
 trial, and produced compiling systems where the uncoordinated baseline usually did
 not.
+
+---
+
+## 7. Testing the "unproven" parts (2026-08-29)
+
+Two things had been asserted but not demonstrated. Both were tested.
+
+### 7a. Contract *generation* — PROVEN
+
+Every earlier scenario used a hand-written contract. The open question: can the
+tool's **conductor** step *auto-generate* a contract from a spec that is good
+enough for independent agents to integrate cleanly?
+
+Test: a **conductor agent** was given only a new spec (a bank ledger — accounts,
+ledger, transfer, statement, api) and asked to produce the frozen contract itself.
+It wrote (unprompted on specifics) a contract that froze exactly the things agents
+diverge on: integer cents with consistent field names, ISO-8601 string timestamps,
+a discriminated-union `TransferResult` (`{ok:true,...} | {ok:false, reason, message}`),
+nullability rules, and it *proactively* added an `ACCOUNT_NOT_FOUND` failure reason —
+reasoning that "every developer would otherwise invent their own handling."
+
+Five independent worker agents then built the five modules against **that
+auto-generated contract** (read from `src/shared.ts`, never modified).
+
+**Result: 0/4 text conflicts, 0 type errors, integrates = yes** — a compiling,
+wired bank-ledger. The auto-generated contract was good enough to make five
+uncoordinated agents' work fit together on the first try. Contract generation is
+not just plumbing hope — it produced a usable contract.
+
+Caveat: one spec, one conductor run. Contract quality will vary with spec clarity;
+a vague spec yields a vague contract and the guarantee weakens. But the mechanism —
+generate → freeze → build-against → integrate — works end to end.
+
+### 7b. The CLI pipeline — PROVEN
+
+The real `multiagent` commands were run chained on a throwaway repo:
+
+```
+multiagent init decomposition.json orchestrator/runs/orders   # builds manifest + task files
+multiagent freeze .../manifest.json                            # VERSION=1, hashes recorded
+multiagent status .../manifest.json                            # "done pricing -> mergeable"
+multiagent merge  .../manifest.json --base main                # "merged 2: pricing, api" (ordered, typecheck-gated)
+multiagent verify .../manifest.json                            # "contracts OK"
+```
+
+All five commands worked together: the run was scaffolded, contracts hashed,
+eligibility computed, branches merged in dependency order behind the typecheck
+gate, and contract integrity confirmed after merge. The tool's own orchestration
+pipeline runs end to end.
+
+### 7c. Still genuinely unproven
+
+The **live coordination layer** — real terminal windows each running an
+interactive `claude` session, coordinated by cross-session messaging (the
+`begin` / `dryrun` handshake) — has not been demonstrated end to end. Everything
+beneath it is proven (worktrees, real terminal spawning, the contract hook, merge,
+the CLI chain), but the messaging handshake between *live* interactive sessions
+needs a human-attended run with real windows; it can't be driven headlessly here.
+That is the one remaining unproven piece.
