@@ -65,8 +65,9 @@ v2.1.234+ on Windows** (for cross-session messaging, the coordination substrate)
 git clone https://github.com/JainderBal/multiagent
 cd multiagent
 pnpm install
-pnpm build          # produces dist/cli.js
-pnpm link --global  # optional: puts `multiagent` on PATH
+pnpm build   # produces dist/cli.js
+npm link     # puts `multiagent` on PATH (npm's global bin is already on PATH;
+             # `pnpm link --global` also works but needs `pnpm setup` first)
 ```
 
 Install the plugin into Claude Code (so the `/multiagent` skill is available):
