@@ -1,5 +1,22 @@
 {
   "name": "multiagent",
-  "description": "Run parallel Claude Code agents against a frozen contract layer.",
-  "version": "0.0.0"
+  "displayName": "multiagent",
+  "version": "0.1.0",
+  "description": "Run parallel Claude Code agents against a frozen contract layer that prevents semantic merge conflicts before any agent starts.",
+  "author": {
+    "name": "JainderBal",
+    "email": "baljainder1@gmail.com",
+    "url": "https://github.com/JainderBal"
+  },
+  "homepage": "https://github.com/JainderBal/multiagent",
+  "repository": "https://github.com/JainderBal/multiagent",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "parallel-agents",
+    "orchestration",
+    "git-worktrees",
+    "merge-conflicts",
+    "contract-lock"
+  ]
 }
