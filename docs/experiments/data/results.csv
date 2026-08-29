@@ -5,3 +5,5 @@ expense-tracker,control,1,4,3,3,100,2,no
 expense-tracker,treatment,1,4,3,0,0,0,yes
 task-queue,control,1,5,4,4,100,0,yes
 task-queue,treatment,1,5,4,0,0,0,yes
+chat,control,1,6,5,5,100,6,no
+chat,treatment,1,6,5,0,0,0,yes
