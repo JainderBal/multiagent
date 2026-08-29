@@ -5,6 +5,10 @@ import { cleanup } from './commands/cleanup.js';
 import { status } from './commands/status.js';
 import { mergeCommand } from './commands/merge.js';
 import { dryrunCommand } from './commands/dryrun.js';
+import { freezeCommand } from './commands/freeze.js';
+import { verifyContracts } from './core/contracts.js';
+import { loadManifest } from './core/manifest.js';
+import { join } from 'node:path';
 import { WindowsTerminals } from './adapters/terminals-windows.js';
 
 const program = new Command();
@@ -29,6 +33,24 @@ program
   .description('Remove all task worktrees.')
   .action(async (manifest: string) => {
     await cleanup(manifest, process.cwd());
+  });
+
+program
+  .command('freeze <manifest>')
+  .description('Hash the contract files and record VERSION + hashes in the manifest.')
+  .option('--contracts <dir>', 'contract directory (relative to repo root)', 'packages/contracts')
+  .action(async (manifest: string, opts: { contracts: string }) => {
+    console.log(await freezeCommand(manifest, process.cwd(), opts.contracts));
+  });
+
+program
+  .command('verify <manifest>')
+  .description('Re-hash contracts and report any drift from the frozen hashes.')
+  .option('--contracts <dir>', 'contract directory (relative to repo root)', 'packages/contracts')
+  .action(async (manifest: string, opts: { contracts: string }) => {
+    const m = await loadManifest(manifest);
+    const v = await verifyContracts(join(process.cwd(), opts.contracts), m);
+    console.log(v.ok ? 'contracts OK' : `contracts DRIFTED: ${v.mismatches.join(', ')}`);
   });
 
 program

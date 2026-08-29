@@ -14,8 +14,14 @@ Node 20+, pnpm, and Windows Terminal (`wt.exe`) on PATH.
 
 Given a run manifest path, the pipeline is:
 
-1. **Materialize** — `multiagent materialize <manifest>` creates one worktree +
-   one terminal window per task, each running `claude --name <task>`.
+1. **Freeze contracts** — once the contract layer exists, run
+   `multiagent freeze <manifest>` to write VERSION and record hashes. Then
+   `multiagent materialize <manifest>` creates one worktree + one terminal window
+   per task (each running `claude --name <task>`) and installs a pre-commit hook
+   that blocks edits to frozen contracts. When an agent needs a contract change,
+   it writes a request and stops; you approve, bump the contract version, and
+   message only the affected agents (by `provides`/`consumes`) to re-read. Use
+   `multiagent verify <manifest>` to check for contract drift at any time.
 2. **Dry run** — message each worker: "state your plan into `plans/<task>.md`,
    write no code, then stop." Run `multiagent dryrun <manifest>` to see who has
    stated intent. This is Checkpoint 3 — the user approves before you continue.

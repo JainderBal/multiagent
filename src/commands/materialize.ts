@@ -1,11 +1,13 @@
 import { loadManifest, saveManifest } from '../core/manifest.js';
 import { createWorktree } from '../core/worktree.js';
+import { installContractHook } from '../core/contracthook.js';
 import type { Terminals } from '../adapters/terminals.js';
 
 export async function materialize(
   manifestPath: string,
   repoRoot: string,
   terminals: Terminals,
+  contractDirRel = 'packages/contracts',
 ): Promise<void> {
   const m = await loadManifest(manifestPath);
   for (const t of m.tasks) {
@@ -23,5 +25,6 @@ export async function materialize(
     });
     t.status = 'running';
   }
+  await installContractHook(repoRoot, contractDirRel);
   await saveManifest(manifestPath, m);
 }
