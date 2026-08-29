@@ -36,4 +36,25 @@ describe('worktree lifecycle', () => {
     await removeWorktree(root, wt);
     await expect(fs.stat(wt)).rejects.toThrow();
   });
+
+  it('gives each worktree its own identity when several exist', async () => {
+    const wtA = join(root, '..', `${basename(root)}-wt-a`);
+    const wtB = join(root, '..', `${basename(root)}-wt-b`);
+    await createWorktree({
+      repoRoot: root, branch: 'agent/a', path: wtA,
+      userName: 'orchestrator/a', userEmail: 'a@orchestrator.local',
+    });
+    await createWorktree({
+      repoRoot: root, branch: 'agent/b', path: wtB,
+      userName: 'orchestrator/b', userEmail: 'b@orchestrator.local',
+    });
+
+    const nameA = (await execa('git', ['config', 'user.name'], { cwd: wtA })).stdout;
+    const nameB = (await execa('git', ['config', 'user.name'], { cwd: wtB })).stdout;
+    expect(nameA).toBe('orchestrator/a');
+    expect(nameB).toBe('orchestrator/b');
+
+    await removeWorktree(root, wtA);
+    await removeWorktree(root, wtB);
+  });
 });
