@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { materialize } from './commands/materialize.js';
 import { cleanup } from './commands/cleanup.js';
 import { status } from './commands/status.js';
+import { mergeCommand } from './commands/merge.js';
 import { WindowsTerminals } from './adapters/terminals-windows.js';
 
 const program = new Command();
@@ -27,6 +28,14 @@ program
   .description('Remove all task worktrees.')
   .action(async (manifest: string) => {
     await cleanup(manifest, process.cwd());
+  });
+
+program
+  .command('merge <manifest>')
+  .description('Merge eligible task branches in dependency order with a typecheck gate.')
+  .option('--base <branch>', 'base branch to merge into', 'main')
+  .action(async (manifest: string, opts: { base: string }) => {
+    console.log(await mergeCommand(manifest, process.cwd(), opts.base));
   });
 
 program.parseAsync();
