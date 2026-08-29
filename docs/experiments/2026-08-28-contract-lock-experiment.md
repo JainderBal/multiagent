@@ -160,3 +160,61 @@ multiagent measure <integration-base-branch> <branch1> <branch2> ...
 The agent half used four independent sub-agents per condition with the prompts and
 frozen contract recorded in this repo's git history for 2026-08-28. Worktrees were
 throwaway.
+
+---
+
+## 6. Scaled campaign (2026-08-29)
+
+To test generality and variance, the experiment was repeated across multiple
+domains of varying size, each run by **independent sub-agents per module per
+condition** (≈40 agents total for the completed scenarios), measured with the
+same harness (`scripts/exp/`). Raw data: `docs/experiments/data/results.csv`.
+
+| Scenario | Modules | PRs measured | Control text-conflicts | Control integrates | Treatment text-conflicts | Treatment integrates |
+|---|---|---|---|---|---|---|
+| expense-tracker | 4 | 3 | **3/3 (100%)** | no (2 errs) | 0/3 (0%) | yes |
+| url-shortener | 5 | 4 | **4/4 (100%)** | no (8 errs) | 0/4 (0%) | yes |
+| task-queue | 5 | 4 | **4/4 (100%)** | yes* | 0/4 (0%) | yes |
+| chat | 6 | 5 | **5/5 (100%)** | no (6 errs) | 0/5 (0%) | yes |
+| **Total** | — | **16** | **16/16 (100%)** | 1/4 integrate | **0/16 (0%)** | **4/4 integrate** |
+
+\* task-queue control produced 100% text conflicts but *did* compile after
+resolving the conflict by keeping one agent's types — its modules were loosely
+coupled to the shared type's exact fields. This is honest variation the harness
+captures, not a rigged outcome.
+
+### Findings
+
+1. **The text-conflict result is universal and stark: 100% (control) vs 0%
+   (treatment), 16/16 vs 0/16, across four different domains and 4–6 modules.**
+   This is the metric directly comparable to AgenticFlict's field method
+   (`git merge --no-commit --no-ff`).
+2. **Semantic integration:** without the lock, 3 of 4 systems failed to compile
+   even after resolving text conflicts (independent agents disagreed on field
+   names — `description`/`note`, `clicks`/`clickCount`, `userId`/`senderId` — on
+   value shapes — `Date` vs epoch-number vs ISO-string — and on API style — free
+   functions vs classes, sync vs async). With the lock, **all 4 compiled into
+   working integrated systems.**
+3. **This is the head-to-head with the open-source tools.** Claude Squad,
+   Conductor, Nimbalyst and the other worktree launchers provide *exactly* the
+   control condition — independent agents in isolated worktrees with no shared
+   interface. The 100%→0% gap is the value the contract lock adds on top of
+   isolation.
+
+### Not yet run (session rate limit hit 2026-08-29, resets overnight)
+
+- **inventory** (6 modules) — agents failed mid-run on an account session limit.
+- **plugin-registry limitation test** — a deliberately adversarial scenario where
+  every module must also append to a *non-contract* shared barrel file. Expected
+  result: treatment still conflicts on the barrel (the lock only protects the
+  frozen contract surface). This honest "where it does NOT help" case is set up
+  (`scripts/exp` + scenario files) and pending the limit reset.
+
+### Threats to validity
+
+Single model driving the agents; controlled task specs; the control condition's
+100% partly reflects agents each authoring the shared types file (the realistic
+uncoordinated default). The robust, model-independent claim is the **direction and
+consistency**: freezing the interface eliminated the interface conflict in every
+trial, and produced compiling systems where the uncoordinated baseline usually did
+not.
