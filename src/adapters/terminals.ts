@@ -4,8 +4,8 @@ export type OpenOpts = {
   /** Program + args to run in the new terminal (kept as argv so multi-word
    *  arguments like an initial prompt survive Windows quoting). */
   argv: string[];
-  /** Optional hex tab color (e.g. "#2ea043") to visually mark agent terminals. */
-  tabColor?: string;
+  /** Optional Windows Terminal color scheme name (e.g. "Multiagent Green"). */
+  colorScheme?: string;
 };
 
 export interface Terminals {

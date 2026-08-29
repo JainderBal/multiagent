@@ -34,7 +34,7 @@ export async function materialize(
       await terminals.open({
         title: t.sessionName,
         cwd: t.worktree,
-        tabColor: '#2ea043', // green: marks agent terminals, distinct from your main window
+        colorScheme: 'Multiagent Green', // green Claude look; distinct from your main window
         argv: ['claude', '--name', t.sessionName, '--dangerously-skip-permissions', prompt],
       });
     }

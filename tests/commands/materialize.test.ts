@@ -47,7 +47,7 @@ describe('materialize', () => {
     expect(opened.map((o) => o.title).sort()).toEqual(['alpha', 'beta', 'gamma']);
     expect(opened.every((o) => o.argv[0] === 'claude' && o.argv[1] === '--name' && o.argv[2] === o.title)).toBe(true);
     expect(opened.every((o) => o.argv.includes('--dangerously-skip-permissions'))).toBe(true);
-    expect(opened.every((o) => o.tabColor === '#2ea043')).toBe(true);
+    expect(opened.every((o) => o.colorScheme === 'Multiagent Green')).toBe(true);
     const after = await loadManifest(mPath);
     expect(after.tasks.every((t) => t.status === 'running')).toBe(true);
     for (const t of after.tasks) {
