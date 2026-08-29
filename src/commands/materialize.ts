@@ -11,18 +11,33 @@ export async function materialize(
 ): Promise<void> {
   const m = await loadManifest(manifestPath);
   for (const t of m.tasks) {
-    await createWorktree({
-      repoRoot,
-      branch: t.branch,
-      path: t.worktree,
-      userName: `orchestrator/${t.name}`,
-      userEmail: `${t.name}@orchestrator.local`,
-    });
-    await terminals.open({
-      title: t.sessionName,
-      cwd: t.worktree,
-      command: `claude --name ${t.sessionName}`,
-    });
+    // Idempotent: if the worktree/branch already exists (a re-run), keep going
+    // rather than opening a duplicate window or crashing.
+    let created = true;
+    try {
+      await createWorktree({
+        repoRoot,
+        branch: t.branch,
+        path: t.worktree,
+        userName: `orchestrator/${t.name}`,
+        userEmail: `${t.name}@orchestrator.local`,
+      });
+    } catch {
+      created = false;
+    }
+    if (created) {
+      const prompt =
+        `You are the multiagent worker for task ${t.name} (branch ${t.branch}) in this git ` +
+        `worktree. Wait for the orchestrator to message you; when told to begin, implement only ` +
+        `your task, building against the frozen contracts in ${contractDirRel} — never edit ` +
+        `contract files. For now reply READY and wait.`;
+      await terminals.open({
+        title: t.sessionName,
+        cwd: t.worktree,
+        tabColor: '#2ea043', // green: marks agent terminals, distinct from your main window
+        argv: ['claude', '--name', t.sessionName, '--dangerously-skip-permissions', prompt],
+      });
+    }
     t.status = 'running';
   }
   await installContractHook(repoRoot, contractDirRel);
