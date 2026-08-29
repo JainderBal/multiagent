@@ -23,8 +23,10 @@ by generating and freezing the shared interface layer before any agent starts.
 > One line: others verify after. This constrains before.
 
 The numeric baselines cited in the original spec (AgenticFlict dataset, per-tool
-conflict rates) are **unverified** and must be confirmed against primary sources
-before they appear in the README. Treat them as claims-to-check, not facts.
+conflict rates) were **verified against the primary source** on 2026-08-28: arXiv
+2604.03551 Table 2 gives Copilot 15.24%, Cursor 19.75%, Devin 22.85%, Claude Code
+25.93%, Codex 31.85% (27.67% overall) — matching the spec. See
+`docs/experiments/2026-08-28-contract-lock-experiment.md`.
 
 ---
 

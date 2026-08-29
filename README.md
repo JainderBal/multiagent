@@ -17,11 +17,14 @@ independently inventing incompatible versions of a shared interface. Both
 branches compile, both pass their own tests, and the **merge breaks** — or worse,
 merges cleanly and is wrong.
 
-Published measurements of AI-agent PR conflict rates exist (e.g. work on AI agent
-PR merge-conflict rates, arXiv 2607.04697), and the original design cites
-per-tool figures. **Those specific numbers are not yet independently verified in
-this repo** — see [§5 Measurements](#5-measurements), which is the honest place
-to put real data from your own runs rather than borrowed figures.
+This is measured, not hand-waved. The **AgenticFlict** dataset (arXiv 2604.03551,
+ACM AIPS'26; 142K+ agent PRs across 59K+ repos) reports a **27.67% overall**
+merge-conflict rate for AI-agent PRs — roughly 1.5–2× the 10–20% typical of human
+PRs — with per-agent rates of Copilot 15.24%, Cursor 19.75%, Devin 22.85%,
+**Claude Code 25.93%**, Codex 31.85%. Their detection method
+(`git merge --no-commit --no-ff`) is exactly what `multiagent measure` uses. See
+[§5 Measurements](#5-measurements) for a controlled with-vs-without experiment run
+in this repo.
 
 ## 2. The claim
 
@@ -121,17 +124,24 @@ multiagent measure main agent/a agent/b agent/c
 # 3 branches, 1 text-conflicts (33%)
 ```
 
-**The experiment (spec §14 bootstrap):** run the same feature two ways — once
-without the contract lock (agents free to invent the interface) and once with it —
-and compare conflict rates on real branches. Record the results here:
+**The experiment (2026-08-28):** a 4-module TypeScript system (validation, storage,
+reporting, api) built two ways by **four independent Claude sub-agents per
+condition** — control (each invents the shared interface) vs. treatment (a frozen
+contract they import). Full methodology and prior-art survey in
+[`docs/experiments/2026-08-28-contract-lock-experiment.md`](docs/experiments/2026-08-28-contract-lock-experiment.md).
 
-| Run | Branches | Text conflicts | Gate failures |
-|---|---|---|---|
-| Without contract lock | _TBD_ | _TBD_ | _TBD_ |
-| With contract lock | _TBD_ | _TBD_ | _TBD_ |
+| Condition | Text-conflict rate (`multiagent measure`) | Integrated `tsc --noEmit` |
+|---|---|---|
+| **Without** contract lock | **100%** (3/3 PRs conflicted) | **fails** — 2 type errors (`string[]` vs `ValidationError[]`) |
+| **With** contract lock | **0%** (0/3) | **passes** — a working integrated system |
 
-Until this table has real data, the tool's core claim is a hypothesis. Do not
-publish borrowed figures as if they were measured here.
+Uncoordinated, the four agents produced four different interfaces (one used
+`note` where others used `description`; validation returned a discriminated union
+where api assumed `{errors: string[]}`; storage exposed functions where api
+assumed a class). Every branch compiled *alone*; only integration exposed the
+conflict — exactly what the contract lock prevents. This is a controlled
+demonstration (small N), complementing AgenticFlict's field numbers above, not
+replacing them.
 
 ## 6. Honest limitations
 
@@ -167,9 +177,13 @@ regardless):
 - **Conductor**, **Nimbalyst** — worktree-per-agent runners / workspaces.
 - **Augment Intent** — coordinator + specialist agents (verifies *after* execution).
 - **container-use** — container isolation instead of worktrees.
+- **wit** — the closest prior art: locks individual *functions* via Tree-sitter
+  before agents write. `multiagent` differs by freezing a *typed interface/contract*
+  both sides compile against (semantic), not per-function syntactic locks.
 
 Coordination is built on Claude Code's own **agent teams** and **cross-session
-messaging** features; `multiagent` adds the contract lock none of the above have.
+messaging** features; `multiagent` adds the interface-level contract lock none of
+the above have. Full survey: `docs/experiments/2026-08-28-contract-lock-experiment.md`.
 
 ## Development
 
