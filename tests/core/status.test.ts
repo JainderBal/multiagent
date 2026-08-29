@@ -27,3 +27,22 @@ describe('renderStatusTable', () => {
     );
   });
 });
+
+describe('renderStatusTable mergeable hint', () => {
+  it('marks a done task whose deps are merged as mergeable', () => {
+    const mm = parseManifest({
+      run: 'r', spec: 's', adapter: 'typescript', contractVersion: 1,
+      contractHashes: {}, agents: [],
+      tasks: [
+        { name: 'a', branch: 'agent/a', worktree: '../r-a', sessionName: 'a',
+          dependsOn: [], provides: [], consumes: [], status: 'merged', builtAtContractVersion: 1 },
+        { name: 'b', branch: 'agent/b', worktree: '../r-b', sessionName: 'b',
+          dependsOn: ['a'], provides: [], consumes: [], status: 'done', builtAtContractVersion: 1 },
+      ],
+    });
+    expect(renderStatusTable(mm)).toBe(
+      'merged    a\n' +
+      'done      b   -> mergeable',
+    );
+  });
+});
