@@ -6,7 +6,7 @@ describe('buildWindowsTerminalArgs', () => {
     const { file, args } = buildWindowsTerminalArgs({
       title: 'api-routes',
       cwd: 'C:\\repo-api-routes',
-      colorScheme: 'Multiagent Green',
+      colorScheme: 'MultiagentGreen',
       argv: ['claude', '--name', 'api-routes', '--dangerously-skip-permissions', 'do the thing'],
     });
     expect(file).toBe('wt.exe');
@@ -14,7 +14,7 @@ describe('buildWindowsTerminalArgs', () => {
       '-w', '0', 'nt',
       '--title', 'api-routes',
       '--suppressApplicationTitle',
-      '--colorScheme', 'Multiagent Green',
+      '--colorScheme', 'MultiagentGreen',
       '-d', 'C:\\repo-api-routes',
       'claude', '--name', 'api-routes', '--dangerously-skip-permissions', 'do the thing',
     ]);
