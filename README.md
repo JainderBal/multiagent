@@ -45,6 +45,26 @@ Two agents may touch the same *file* — git's 3-way merge handles non-overlappi
 edits — but only one may define any given contract symbol, and that symbol is
 frozen. The semantic conflict has nowhere to form.
 
+### The exact difference from every other tool
+
+Almost every parallel-agent tool gives each agent an isolated git worktree. That
+stops *file* collisions and nothing else — the agents are still free to invent
+incompatible interfaces, and you find out at merge time. `multiagent` is the only
+one that removes that freedom *first*, at the level of a typed, compilable interface:
+
+| Tool / category | Isolation | Coordinates the shared interface? | When conflicts are handled |
+|---|---|---|---|
+| **Claude Squad, Conductor, Nimbalyst, Paseo, Emdash, Baton, Vibe Kanban** (worktree launchers) | git worktrees | **No** — agents each invent it | **After** — you resolve at merge |
+| **Augment Intent** | git worktrees | Coordinates, but **verifies after** execution | After |
+| **container-use** | containers | No | After |
+| **wit** (closest prior art) | worktrees | Locks individual **functions** via Tree-sitter (syntactic) | Before, per-function |
+| **`multiagent`** | git worktrees | **Freezes a typed interface/contract both sides compile against (semantic)** | **Before — the conflict cannot form** |
+
+Concretely: run the same feature through Claude Squad (or any launcher) and through
+`multiagent`, and you get the two rows of the experiment in §5 — **100% of parallel
+changes conflict vs. 0%.** The launchers *are* the "without" condition; the contract
+lock is the only thing that changes.
+
 ## 3. How the contract lock works
 
 - **Freeze** — `multiagent freeze` writes `packages/contracts/VERSION` and records
@@ -124,33 +144,76 @@ multiagent measure main agent/a agent/b agent/c
 # 3 branches, 1 text-conflicts (33%)
 ```
 
-**The experiment (2026-08-28):** a 4-module TypeScript system (validation, storage,
-reporting, api) built two ways by **four independent Claude sub-agents per
-condition** — control (each invents the shared interface) vs. treatment (a frozen
-contract they import). Full methodology and prior-art survey in
-[`docs/experiments/2026-08-28-contract-lock-experiment.md`](docs/experiments/2026-08-28-contract-lock-experiment.md).
+### 5.1 The experiment
 
-Scaled across **five domains** (expense tracker, URL shortener, task queue, chat,
-inventory; 4–6 modules each), each built by **independent sub-agents per module per
-condition** (~60 agents), measured with the shipped harness (`scripts/exp/`, data
-in `docs/experiments/data/results.csv`):
+Take one feature spec, build it **twice** with independent Claude sub-agents — one
+per module, none allowed to see the others' code (real divergence, not staged):
 
-| Condition | Text-conflict rate (`multiagent measure`) | Integrated `tsc --noEmit` |
-|---|---|---|
-| **Without** contract lock | **100%** — 21/21 PRs conflicted across all 5 domains | **fails in 4/5** (agents disagreed on field names, value shapes, sync/async, class vs functions) |
-| **With** contract lock | **0%** — 0/21 | **passes in 5/5** — working integrated systems |
+- **Without** the lock ("control") — each agent defines the shared types itself.
+  *This is exactly what Claude Squad / Conductor / any worktree launcher gives you.*
+- **With** the lock ("treatment") — a single frozen contract file is present; each
+  agent imports it and may not modify it.
 
-**This is the head-to-head with the open-source tools:** Claude Squad, Conductor,
-Nimbalyst and the other worktree launchers provide *exactly* the "without" row —
-independent agents in isolated worktrees, no shared interface. The 100%→0% gap is
-what the contract lock adds on top of isolation.
+Then merge every agent's branch as a PR and count conflicts with
+`git merge --no-commit --no-ff` (the same method AgenticFlict used), and separately
+assemble all modules and run `tsc --noEmit` to catch *semantic* disagreements a
+clean text-merge would hide. Harness: `scripts/exp/`; raw data:
+`docs/experiments/data/results.csv`.
 
-**Where it does NOT help (an honest limitation test):** a sixth scenario forced
-five plugins that share a *frozen* contract to also edit a *non-contract* shared
-barrel file. They still conflicted **100%** on the barrel — the lock only protects
-the surface you freeze; genuinely shared mutable files outside the contract still
-collide. Full analysis, prior-art survey, and threats to validity (single model;
-the "without" 100% partly reflects agents each authoring the shared file) in
+### 5.2 Results — 5 domains, ~60 independent agents
+
+| Domain | Modules | Without the lock (= a worktree launcher) | With the lock (`multiagent`) |
+|---|---|---|---|
+| expense-tracker | 4 | 3/3 conflicts (100%), does **not** compile | 0/3 (0%), compiles |
+| url-shortener | 5 | 4/4 (100%), does **not** compile (8 type errors) | 0/4 (0%), compiles |
+| task-queue | 5 | 4/4 (100%), compiles* | 0/4 (0%), compiles |
+| chat | 6 | 5/5 (100%), does **not** compile (6 errors) | 0/5 (0%), compiles |
+| inventory | 6 | 5/5 (100%), does **not** compile (8 errors) | 0/5 (0%), compiles |
+| **Total** | — | **21/21 conflicted (100%)**, 4/5 fail to compile | **0/21 (0%)**, **5/5 compile** |
+
+\* task-queue's "without" run still conflicted 100%, but happened to compile after
+picking one agent's types — those modules were loosely coupled to the shared type.
+
+**Every single run:** without the lock, uncoordinated agents produced incompatible
+interfaces — `description` vs `note`, `clicks` vs `clickCount`, `Date` vs epoch-number
+vs ISO-string, free functions vs a class, sync vs async. With the lock, the conflict
+had nowhere to form: **0 conflicts and a compiling, integrated system, every time.**
+
+### 5.3 The tool can *generate* the contract, not just enforce it — PROVEN
+
+The mechanism above assumes a good contract exists. So we tested whether the tool's
+**conductor** step can write one from scratch: a conductor agent was given only a
+new spec (a bank ledger) and wrote the frozen contract itself. It froze the exact
+things agents diverge on — integer cents, ISO timestamps, a discriminated-union
+transfer result, nullability — and proactively added an `ACCOUNT_NOT_FOUND` case.
+Five independent agents then built against **that auto-generated contract**:
+**0/4 conflicts, 0 type errors, a working integrated ledger.** (CSV row:
+`ledger,treatment-autogen`.)
+
+### 5.4 The CLI pipeline runs end-to-end — PROVEN
+
+On a throwaway repo, the real commands chained:
+`init` (scaffolds the run) → `freeze` (VERSION + hashes) → `status`
+(`pricing -> mergeable`) → `merge` (`merged 2: pricing, api`, dependency-ordered,
+typecheck-gated) → `verify` (`contracts OK`).
+
+### 5.5 Where it does NOT help — an honest limitation
+
+A sixth scenario forced five plugins that share a *frozen* contract to also append
+to a **non-contract** shared barrel file (`registry.ts`). They still conflicted
+**100%** on the barrel. The lock protects **only the surface you freeze**; genuinely
+shared mutable files outside the contract collide exactly as they would without the
+tool. (This is why the tool lets you freeze *any* file, not just types.)
+
+### 5.6 What is still unproven
+
+The **live coordination layer** — real terminal windows each running an interactive
+`claude` session, coordinated by the `begin` / `dryrun` cross-session messages — has
+not been demonstrated end-to-end; it needs a human-attended run with real windows.
+Everything beneath it is proven (worktrees, terminal spawning, the contract hook,
+merge, the CLI chain). Full methodology, prior-art survey, and threats to validity
+(single model; the "without" 100% partly reflects agents each authoring the shared
+file) are in
 [`docs/experiments/2026-08-28-contract-lock-experiment.md`](docs/experiments/2026-08-28-contract-lock-experiment.md).
 
 ## 6. Honest limitations
@@ -161,21 +224,34 @@ the "without" 100% partly reflects agents each authoring the shared file) in
 - **Single repo only.** No multi-repo support.
 - **Windows-first.** macOS/Linux terminal spawning is not yet implemented behind
   the `Terminals` adapter.
-- **Contract *generation* is LLM-driven** and is the fuzziest step; the tool
-  freezes and enforces contracts, but proposing good ones is prompt engineering.
+- **Contract *generation* is LLM-driven.** It is demonstrated to work (§5.3), but
+  quality tracks spec clarity — a vague spec yields a vague contract and the
+  guarantee weakens.
 - **The pre-commit hook is bypassable.** The merge-time re-hash is the real gate.
 - **Cross-session messaging is version-gated** (Claude Code v2.1.234+ on Windows)
-  and experimental; the committed manifest is the durable source of truth.
+  and experimental; the committed manifest is the durable source of truth. The
+  live end-to-end messaging handshake between terminal sessions is the one part not
+  yet demonstrated (§5.6).
 
 ## 7. How coordination works (the architecture)
 
 Worker agents are independent Claude Code sessions — one per task, each in its own
-git worktree and its own terminal window, which you can watch and steer. The
-orchestrator coordinates them with Claude Code's **cross-session messaging**
-(signals and pointers only — never code bodies), while a committed `manifest.json`
-plus `status/` and `requests/` logs are the durable source of truth and audit
-trail. The plugin splits into a deterministic **Node CLI** (worktrees, terminals,
-hashing, merge, status — all unit-tested) and a **skill** that drives the
+git worktree and its own terminal window, which you can watch and steer.
+
+**Each terminal and session is named after its task.** `materialize` opens every
+window with `wt.exe --title <task>` and launches `claude --name <task>`, so the
+task name is both the window title *and* the Claude session's address. That naming
+is what lets the orchestrator (and you) talk to a specific worker by name over
+cross-session messaging — e.g. `SendMessage @notification-service "begin"` reaches
+exactly the session working on `notification-service`. The names are derived from a
+single source (the task name) and are identical across the branch (`agent/<task>`),
+worktree (`../repo-<task>`), session, terminal title, task file, and status log.
+
+The orchestrator coordinates the workers with Claude Code's **cross-session
+messaging** (signals and pointers only — never code bodies), while a committed
+`manifest.json` plus `status/` and `requests/` logs are the durable source of truth
+and audit trail. The plugin splits into a deterministic **Node CLI** (worktrees,
+terminals, hashing, merge, status — all unit-tested) and a **skill** that drives the
 orchestrator Claude. See `docs/design/2026-08-28-multiagent-design.md`.
 
 ## 8. Credits & prior art
