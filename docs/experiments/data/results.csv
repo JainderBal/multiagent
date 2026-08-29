@@ -3,3 +3,5 @@ url-shortener,control,1,5,4,4,100,8,no
 url-shortener,treatment,1,5,4,0,0,0,yes
 expense-tracker,control,1,4,3,3,100,2,no
 expense-tracker,treatment,1,4,3,0,0,0,yes
+task-queue,control,1,5,4,4,100,0,yes
+task-queue,treatment,1,5,4,0,0,0,yes
