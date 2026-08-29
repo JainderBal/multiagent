@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { execa } from 'execa';
 import { promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { createWorktree, removeWorktree } from '../../src/core/worktree.js';
 
 async function initRepo(): Promise<string> {
@@ -21,7 +21,7 @@ describe('worktree lifecycle', () => {
   beforeEach(async () => { root = await initRepo(); });
 
   it('creates a worktree with its own branch and git identity, then removes it', async () => {
-    const wt = join(root, '..', 'wt-alpha');
+    const wt = join(root, '..', `${basename(root)}-wt-alpha`);
     await createWorktree({
       repoRoot: root, branch: 'agent/alpha', path: wt,
       userName: 'orchestrator/alpha', userEmail: 'alpha@orchestrator.local',

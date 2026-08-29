@@ -1,0 +1,13 @@
+{
+  "run": "fake-run",
+  "spec": "fake.md",
+  "adapter": "typescript",
+  "contractVersion": 1,
+  "contractHashes": {},
+  "agents": [],
+  "tasks": [
+    { "name": "alpha", "branch": "agent/alpha", "worktree": "../multiagent-alpha", "sessionName": "alpha", "dependsOn": [], "provides": [], "consumes": [], "status": "pending", "builtAtContractVersion": null },
+    { "name": "beta", "branch": "agent/beta", "worktree": "../multiagent-beta", "sessionName": "beta", "dependsOn": [], "provides": [], "consumes": [], "status": "pending", "builtAtContractVersion": null },
+    { "name": "gamma", "branch": "agent/gamma", "worktree": "../multiagent-gamma", "sessionName": "gamma", "dependsOn": [], "provides": [], "consumes": [], "status": "pending", "builtAtContractVersion": null }
+  ]
+}
