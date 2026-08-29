@@ -45,7 +45,8 @@ describe('materialize', () => {
     await materialize(mPath, root, fake);
 
     expect(opened.map((o) => o.title).sort()).toEqual(['alpha', 'beta', 'gamma']);
-    expect(opened.every((o) => o.command === `claude --name ${o.title}`)).toBe(true);
+    expect(opened.every((o) => o.command.includes(`claude --name ${o.title}`))).toBe(true);
+    expect(opened.every((o) => o.command.includes('DRY RUN') && o.command.includes(o.title))).toBe(true);
     const after = await loadManifest(mPath);
     expect(after.tasks.every((t) => t.status === 'running')).toBe(true);
     for (const t of after.tasks) {
