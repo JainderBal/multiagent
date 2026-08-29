@@ -6,6 +6,7 @@ import { status } from './commands/status.js';
 import { mergeCommand } from './commands/merge.js';
 import { dryrunCommand } from './commands/dryrun.js';
 import { freezeCommand } from './commands/freeze.js';
+import { agentsCommand } from './commands/agents.js';
 import { verifyContracts } from './core/contracts.js';
 import { loadManifest } from './core/manifest.js';
 import { join } from 'node:path';
@@ -51,6 +52,13 @@ program
     const m = await loadManifest(manifest);
     const v = await verifyContracts(join(process.cwd(), opts.contracts), m);
     console.log(v.ok ? 'contracts OK' : `contracts DRIFTED: ${v.mismatches.join(', ')}`);
+  });
+
+program
+  .command('agents <dir>')
+  .description('List custom agents loaded from a .claude/agents directory.')
+  .action(async (dir: string) => {
+    console.log(await agentsCommand(dir));
   });
 
 program
