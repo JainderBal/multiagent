@@ -1,0 +1,5 @@
+scenario,condition,trial,n_modules,pr_count,text_conflicts,text_pct,tsc_errors,integrates
+url-shortener,control,1,5,4,4,100,8,no
+url-shortener,treatment,1,5,4,0,0,0,yes
+expense-tracker,control,1,4,3,3,100,2,no
+expense-tracker,treatment,1,4,3,0,0,0,yes
