@@ -1,0 +1,5 @@
+{
+  "name": "multiagent",
+  "description": "Run parallel Claude Code agents against a frozen contract layer.",
+  "version": "0.0.0"
+}
