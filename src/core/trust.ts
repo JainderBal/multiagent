@@ -4,12 +4,13 @@ import { join, resolve } from 'node:path';
 
 /**
  * Normalize a folder path to the key format Claude Code uses in ~/.claude.json:
- * an absolute path with a lowercase drive letter and forward slashes
- * (e.g. "c:/Users/x/repo").
+ * an absolute path with forward slashes, keeping the drive letter exactly as
+ * Node's `resolve` produces it (uppercase on Windows, e.g. "C:/Users/x/repo").
+ * Claude keys projects by that uppercase-drive form; lowercasing it here made
+ * the pre-accept miss, so the trust dialog still appeared.
  */
 export function normalizeProjectKey(folder: string): string {
-  const abs = resolve(folder).replace(/\\/g, '/');
-  return abs.replace(/^([A-Za-z]):/, (_m, d: string) => `${d.toLowerCase()}:`);
+  return resolve(folder).replace(/\\/g, '/');
 }
 
 /**

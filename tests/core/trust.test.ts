@@ -5,8 +5,8 @@ import { join } from 'node:path';
 import { normalizeProjectKey, trustFolder } from '../../src/core/trust.js';
 
 describe('normalizeProjectKey', () => {
-  it('lowercases the drive and uses forward slashes', () => {
-    expect(normalizeProjectKey('C:\\Users\\x\\repo-alpha')).toBe('c:/Users/x/repo-alpha');
+  it('preserves the drive letter and uses forward slashes', () => {
+    expect(normalizeProjectKey('C:\\Users\\x\\repo-alpha')).toBe('C:/Users/x/repo-alpha');
   });
 });
 
@@ -20,13 +20,13 @@ describe('trustFolder', () => {
     const cfg = JSON.parse(await fs.readFile(p, 'utf8'));
     expect(cfg.someTop).toBe(1); // untouched
     expect(cfg.projects['c:/existing'].foo).toBe('bar'); // untouched
-    expect(cfg.projects['c:/Users/x/wt-alpha'].hasTrustDialogAccepted).toBe(true);
+    expect(cfg.projects['C:/Users/x/wt-alpha'].hasTrustDialogAccepted).toBe(true);
   });
 
   it('creates the file/projects map if missing', async () => {
     const p = join(await fs.mkdtemp(join(tmpdir(), 'ma-trust2-')), '.claude.json');
     await trustFolder('C:\\a\\b', p);
     const cfg = JSON.parse(await fs.readFile(p, 'utf8'));
-    expect(cfg.projects['c:/a/b'].hasTrustDialogAccepted).toBe(true);
+    expect(cfg.projects['C:/a/b'].hasTrustDialogAccepted).toBe(true);
   });
 });
