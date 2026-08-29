@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { createHash } from 'node:crypto';
-import { loadManifest, saveManifest, type TManifest } from './manifest.js';
+import { loadManifest, saveManifest, type TManifest, type TTask } from './manifest.js';
 
 async function walk(dir: string): Promise<string[]> {
   let entries;
@@ -66,4 +66,11 @@ export async function bumpContracts(contractDir: string, manifestPath: string): 
   m.contractHashes = await hashContracts(contractDir);
   await saveManifest(manifestPath, m);
   return m.contractVersion;
+}
+
+export function computeAffected(tasks: TTask[], changedSymbols: string[]): string[] {
+  const changed = new Set(changedSymbols);
+  return tasks
+    .filter((t) => [...t.provides, ...t.consumes].some((s) => changed.has(s)))
+    .map((t) => t.name);
 }
