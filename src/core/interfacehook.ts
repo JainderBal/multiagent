@@ -2,18 +2,18 @@ import { execa } from 'execa';
 import { promises as fs } from 'node:fs';
 import { join, isAbsolute, resolve } from 'node:path';
 
-export async function installContractHook(
+export async function installInterfaceHook(
   repoRoot: string,
-  contractDirRel: string,
+  interfaceDirRel: string,
 ): Promise<string> {
   const { stdout } = await execa('git', ['rev-parse', '--git-common-dir'], { cwd: repoRoot });
   const gitDir = isAbsolute(stdout) ? stdout : resolve(repoRoot, stdout);
   const hooksDir = join(gitDir, 'hooks');
   await fs.mkdir(hooksDir, { recursive: true });
-  const rel = contractDirRel.replace(/\/+$/, '');
+  const rel = interfaceDirRel.replace(/\/+$/, '');
   const script = `#!/bin/sh
 if git diff --cached --name-only | grep -q '^${rel}/'; then
-  echo "BLOCKED: contracts are frozen. File a change request instead."
+  echo "BLOCKED: interfaces are frozen. File a change request instead."
   echo "  Write a request under the run's requests/ directory and stop."
   exit 1
 fi

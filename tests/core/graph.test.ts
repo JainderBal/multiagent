@@ -5,7 +5,7 @@ import type { TTask } from '../../src/core/manifest.js';
 function task(name: string, status: TTask['status'], dependsOn: string[] = []): TTask {
   return {
     name, branch: `agent/${name}`, worktree: `../r-${name}`, sessionName: name,
-    dependsOn, provides: [], consumes: [], status, builtAtContractVersion: null,
+    dependsOn, provides: [], consumes: [], status, builtAtInterfaceVersion: null,
   };
 }
 

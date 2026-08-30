@@ -8,10 +8,10 @@ async function setup(plansPresent: string[]): Promise<string> {
   const dir = await fs.mkdtemp(join(tmpdir(), 'ma-dry-'));
   const mk = (name: string) => ({
     name, branch: `agent/${name}`, worktree: `../wt-${name}`, sessionName: name,
-    dependsOn: [], provides: [], consumes: [], status: 'running', builtAtContractVersion: null,
+    dependsOn: [], provides: [], consumes: [], status: 'running', builtAtInterfaceVersion: null,
   });
   await fs.writeFile(join(dir, 'manifest.json'), JSON.stringify({
-    run: 'r', spec: 's', adapter: 'typescript', contractVersion: 1, contractHashes: {},
+    run: 'r', spec: 's', adapter: 'typescript', interfaceVersion: 1, interfaceHashes: {},
     agents: [], tasks: ['api', 'ui'].map(mk),
   }));
   await fs.mkdir(join(dir, 'plans'), { recursive: true });

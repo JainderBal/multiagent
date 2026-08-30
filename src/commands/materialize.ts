@@ -1,6 +1,6 @@
 import { loadManifest, saveManifest } from '../core/manifest.js';
 import { createWorktree } from '../core/worktree.js';
-import { installContractHook } from '../core/contracthook.js';
+import { installInterfaceHook } from '../core/interfacehook.js';
 import { trustFolder } from '../core/trust.js';
 import type { Terminals } from '../adapters/terminals.js';
 
@@ -8,7 +8,7 @@ export async function materialize(
   manifestPath: string,
   repoRoot: string,
   terminals: Terminals,
-  contractDirRel = 'packages/contracts',
+  interfaceDirRel = 'packages/interfaces',
   autonomous = false,
 ): Promise<void> {
   const m = await loadManifest(manifestPath);
@@ -31,8 +31,8 @@ export async function materialize(
     await trustFolder(t.worktree);
   }
 
-  // Phase 2 — install the contract hook once, while the repo is still quiet.
-  await installContractHook(repoRoot, contractDirRel);
+  // Phase 2 — install the interface hook once, while the repo is still quiet.
+  await installInterfaceHook(repoRoot, interfaceDirRel);
 
   // Phase 3 — now open a terminal + Claude session per task.
   for (const t of m.tasks) {

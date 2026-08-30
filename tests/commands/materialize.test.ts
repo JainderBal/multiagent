@@ -21,11 +21,11 @@ async function initRepo(): Promise<string> {
 function manifestFor(): { tasks: { name: string; worktree: string }[] } & Record<string, unknown> {
   const mk = (name: string) => ({
     name, branch: `agent/${name}`, worktree: `../wt-${name}`, sessionName: name,
-    dependsOn: [], provides: [], consumes: [], status: 'pending', builtAtContractVersion: null,
+    dependsOn: [], provides: [], consumes: [], status: 'pending', builtAtInterfaceVersion: null,
   });
   return {
-    run: 'fake', spec: 'fake.md', adapter: 'typescript', contractVersion: 1,
-    contractHashes: {}, agents: [], tasks: [mk('alpha'), mk('beta'), mk('gamma')],
+    run: 'fake', spec: 'fake.md', adapter: 'typescript', interfaceVersion: 1,
+    interfaceHashes: {}, agents: [], tasks: [mk('alpha'), mk('beta'), mk('gamma')],
   };
 }
 

@@ -12,7 +12,7 @@ export async function mergeCommand(
   const m = await loadManifest(manifestPath);
   const adapter = getAdapter(m.adapter);
   const report = await mergeAll(
-    manifestPath, repoRoot, baseBranch, adapter, join(repoRoot, adapter.contractDir), single,
+    manifestPath, repoRoot, baseBranch, adapter, join(repoRoot, adapter.interfaceDir), single,
   );
   const lines = [`merged ${report.merged.length}: ${report.merged.join(', ') || '(none)'}`];
   for (const w of report.warnings) lines.push(`warning: ${w}`);

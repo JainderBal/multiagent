@@ -9,20 +9,26 @@ import { freezeCommand } from './commands/freeze.js';
 import { agentsCommand } from './commands/agents.js';
 import { initCommand } from './commands/init.js';
 import { measureCommand } from './commands/measure.js';
-import { verifyContracts } from './core/contracts.js';
+import { doneCommand } from './commands/done.js';
+import { verifyInterfaces } from './core/interfaces.js';
 import { loadManifest } from './core/manifest.js';
+import { getAdapter } from './adapters/registry.js';
 import { join } from 'node:path';
 import { WindowsTerminals } from './adapters/terminals-windows.js';
 
 const program = new Command();
-program.name('multiagent').description('Parallel Claude Code agents with a frozen contract layer.');
+program.name('multiagent').description('Parallel Claude Code agents with a frozen interface layer.');
 
 program
   .command('materialize <manifest>')
   .description('Create a worktree and terminal per task.')
   .option('--auto', 'launch workers in autonomous (bypassPermissions) mode', false)
   .action(async (manifest: string, opts: { auto: boolean }) => {
-    await materialize(manifest, process.cwd(), new WindowsTerminals(), 'packages/contracts', opts.auto);
+    // Take the interface directory from the run's adapter so the pre-commit hook
+    // protects the same files that freeze/verify/merge hash.
+    const m = await loadManifest(manifest);
+    const interfaceDir = getAdapter(m.adapter).interfaceDir;
+    await materialize(manifest, process.cwd(), new WindowsTerminals(), interfaceDir, opts.auto);
   });
 
 program
@@ -30,6 +36,13 @@ program
   .description('Print the run status table.')
   .action(async (manifest: string) => {
     console.log(await status(manifest));
+  });
+
+program
+  .command('done <manifest> <task>')
+  .description('Mark a task done (built at the current interface version) so it can be merged.')
+  .action(async (manifest: string, task: string) => {
+    console.log(await doneCommand(manifest, task));
   });
 
 program
@@ -48,20 +61,20 @@ program
 
 program
   .command('freeze <manifest>')
-  .description('Hash the contract files and record VERSION + hashes in the manifest.')
-  .option('--contracts <dir>', 'contract directory (relative to repo root)', 'packages/contracts')
-  .action(async (manifest: string, opts: { contracts: string }) => {
-    console.log(await freezeCommand(manifest, process.cwd(), opts.contracts));
+  .description('Hash the interface files and record VERSION + hashes in the manifest.')
+  .option('--interfaces <dir>', 'interface directory (relative to repo root)', 'packages/interfaces')
+  .action(async (manifest: string, opts: { interfaces: string }) => {
+    console.log(await freezeCommand(manifest, process.cwd(), opts.interfaces));
   });
 
 program
   .command('verify <manifest>')
-  .description('Re-hash contracts and report any drift from the frozen hashes.')
-  .option('--contracts <dir>', 'contract directory (relative to repo root)', 'packages/contracts')
-  .action(async (manifest: string, opts: { contracts: string }) => {
+  .description('Re-hash interfaces and report any drift from the frozen hashes.')
+  .option('--interfaces <dir>', 'interface directory (relative to repo root)', 'packages/interfaces')
+  .action(async (manifest: string, opts: { interfaces: string }) => {
     const m = await loadManifest(manifest);
-    const v = await verifyContracts(join(process.cwd(), opts.contracts), m);
-    console.log(v.ok ? 'contracts OK' : `contracts DRIFTED: ${v.mismatches.join(', ')}`);
+    const v = await verifyInterfaces(join(process.cwd(), opts.interfaces), m);
+    console.log(v.ok ? 'interfaces OK' : `interfaces DRIFTED: ${v.mismatches.join(', ')}`);
   });
 
 program

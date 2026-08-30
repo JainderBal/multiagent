@@ -18,12 +18,12 @@ Consumes: ${list(task.consumes)}
 
 ## Scope
 
-Implement only this task. Build against the frozen contracts in the contracts
+Implement only this task. Build against the frozen interfaces in the interfaces
 directory — import the declarations, do not restate them.
 
-Do NOT edit contract files. If you need a contract change, write a request under
+Do NOT edit interface files. If you need an interface change, write a request under
 requests/${task.name}.md describing what you need and why, set your status to
-blocked, and stop. Wait for the orchestrator to bump the contract version and
+blocked, and stop. Wait for the orchestrator to bump the interface version and
 tell you to re-read.
 
 Coordinate only by messaging and by the committed run files. Never edit another

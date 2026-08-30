@@ -19,7 +19,7 @@ describe('renderTaskFile', () => {
     expect(md).toMatch(/# Task: api/);
     expect(md).toMatch(/Depends on: shared-types/);
     expect(md).toMatch(/Consumes: N/);
-    expect(md).toMatch(/Do NOT edit contract files/);
+    expect(md).toMatch(/Do NOT edit interface files/);
   });
 });
 

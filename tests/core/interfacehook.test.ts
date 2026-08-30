@@ -3,7 +3,7 @@ import { execa } from 'execa';
 import { promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { installContractHook } from '../../src/core/contracthook.js';
+import { installInterfaceHook } from '../../src/core/interfacehook.js';
 
 async function repo(): Promise<string> {
   const root = await fs.mkdtemp(join(tmpdir(), 'ma-hook-'));
@@ -11,28 +11,28 @@ async function repo(): Promise<string> {
   await git(['init', '-q', '-b', 'main']);
   await git(['config', 'user.email', 'r@t.local']);
   await git(['config', 'user.name', 'r']);
-  await fs.mkdir(join(root, 'packages', 'contracts'), { recursive: true });
-  await fs.writeFile(join(root, 'packages', 'contracts', 'c.ts'), 'export const x = 1;\n');
+  await fs.mkdir(join(root, 'packages', 'interfaces'), { recursive: true });
+  await fs.writeFile(join(root, 'packages', 'interfaces', 'c.ts'), 'export const x = 1;\n');
   await fs.writeFile(join(root, 'app.ts'), 'export const y = 2;\n');
   await git(['add', '-A']); await git(['commit', '-q', '-m', 'base']);
   return root;
 }
 
-describe('installContractHook', () => {
+describe('installInterfaceHook', () => {
   let root: string;
   beforeEach(async () => { root = await repo(); });
 
-  it('blocks a commit that stages a contract file', async () => {
-    await installContractHook(root, 'packages/contracts');
-    await fs.writeFile(join(root, 'packages', 'contracts', 'c.ts'), 'export const x = 2;\n');
+  it('blocks a commit that stages an interface file', async () => {
+    await installInterfaceHook(root, 'packages/interfaces');
+    await fs.writeFile(join(root, 'packages', 'interfaces', 'c.ts'), 'export const x = 2;\n');
     await execa('git', ['add', '-A'], { cwd: root });
-    const res = await execa('git', ['commit', '-m', 'touch contract'], { cwd: root, reject: false });
+    const res = await execa('git', ['commit', '-m', 'touch interface'], { cwd: root, reject: false });
     expect(res.exitCode).not.toBe(0);
     expect(`${res.stdout}${res.stderr}`).toMatch(/BLOCKED/);
   });
 
-  it('allows a commit that stages only non-contract files', async () => {
-    await installContractHook(root, 'packages/contracts');
+  it('allows a commit that stages only non-interface files', async () => {
+    await installInterfaceHook(root, 'packages/interfaces');
     await fs.writeFile(join(root, 'app.ts'), 'export const y = 3;\n');
     await execa('git', ['add', '-A'], { cwd: root });
     const res = await execa('git', ['commit', '-m', 'touch app'], { cwd: root, reject: false });

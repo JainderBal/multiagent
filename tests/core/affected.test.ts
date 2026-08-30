@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { computeAffected } from '../../src/core/contracts.js';
+import { computeAffected } from '../../src/core/interfaces.js';
 import type { TTask } from '../../src/core/manifest.js';
 
 function t(name: string, provides: string[], consumes: string[]): TTask {
   return {
     name, branch: `agent/${name}`, worktree: `../w-${name}`, sessionName: name,
-    dependsOn: [], provides, consumes, status: 'running', builtAtContractVersion: 1,
+    dependsOn: [], provides, consumes, status: 'running', builtAtInterfaceVersion: 1,
   };
 }
 

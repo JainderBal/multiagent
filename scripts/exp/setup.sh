@@ -1,8 +1,8 @@
 #!/bin/sh
-# Set up a scenario: base repo + control/treatment worktrees, optional frozen contract.
-# Usage: setup.sh <root> <scenario> <specFile> <contractFile|NONE> <mod1> <mod2> ...
+# Set up a scenario: base repo + control/treatment worktrees, optional frozen interface.
+# Usage: setup.sh <root> <scenario> <specFile> <interfaceFile|NONE> <mod1> <mod2> ...
 set -e
-root=$1; scenario=$2; spec=$3; contract=$4; shift 4
+root=$1; scenario=$2; spec=$3; interface=$4; shift 4
 mods="$@"
 dir="$root/$scenario"
 rm -rf "$dir"; mkdir -p "$dir/base/src"
@@ -22,11 +22,11 @@ for cond in control treatment; do
     git -C "$base" worktree add -q "$dir/$cond-$m" -b "$cond/$m" >/dev/null
   done
 done
-if [ "$contract" != "NONE" ]; then
+if [ "$interface" != "NONE" ]; then
   for m in $mods; do
-    cp "$contract" "$dir/treatment-$m/src/shared.ts"
+    cp "$interface" "$dir/treatment-$m/src/shared.ts"
     git -C "$dir/treatment-$m" add src/shared.ts
-    git -C "$dir/treatment-$m" commit -q -m "frozen contract"
+    git -C "$dir/treatment-$m" commit -q -m "frozen interface"
   done
 fi
 echo "SETUP $scenario ready: $(echo $mods | wc -w) modules x 2 conditions"

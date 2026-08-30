@@ -1,5 +1,5 @@
 #!/bin/sh
-if git diff --cached --name-only | grep -q '^packages/contracts/'; then
-  echo "BLOCKED: contracts are frozen. File a change request instead."
+if git diff --cached --name-only | grep -q '^packages/interfaces/'; then
+  echo "BLOCKED: interfaces are frozen. File a change request instead."
   exit 1
 fi

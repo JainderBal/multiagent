@@ -23,34 +23,34 @@ function posix(p: string): string {
   return p.split(sep).join('/');
 }
 
-export async function hashContracts(contractDir: string): Promise<Record<string, string>> {
-  const files = await walk(contractDir);
+export async function hashInterfaces(interfaceDir: string): Promise<Record<string, string>> {
+  const files = await walk(interfaceDir);
   const out: Record<string, string> = {};
   for (const f of files.sort()) {
     const buf = await fs.readFile(f);
-    out[posix(relative(contractDir, f))] = createHash('sha256').update(buf).digest('hex');
+    out[posix(relative(interfaceDir, f))] = createHash('sha256').update(buf).digest('hex');
   }
   return out;
 }
 
-export async function freezeContracts(
-  contractDir: string,
+export async function freezeInterfaces(
+  interfaceDir: string,
   manifestPath: string,
 ): Promise<Record<string, string>> {
   const m = await loadManifest(manifestPath);
-  await fs.writeFile(join(contractDir, 'VERSION'), `${m.contractVersion}\n`, 'utf8');
-  const hashes = await hashContracts(contractDir);
-  m.contractHashes = hashes;
+  await fs.writeFile(join(interfaceDir, 'VERSION'), `${m.interfaceVersion}\n`, 'utf8');
+  const hashes = await hashInterfaces(interfaceDir);
+  m.interfaceHashes = hashes;
   await saveManifest(manifestPath, m);
   return hashes;
 }
 
-export async function verifyContracts(
-  contractDir: string,
+export async function verifyInterfaces(
+  interfaceDir: string,
   manifest: TManifest,
 ): Promise<{ ok: boolean; mismatches: string[] }> {
-  const current = await hashContracts(contractDir);
-  const expected = manifest.contractHashes;
+  const current = await hashInterfaces(interfaceDir);
+  const expected = manifest.interfaceHashes;
   const keys = new Set([...Object.keys(current), ...Object.keys(expected)]);
   const mismatches: string[] = [];
   for (const k of keys) {
@@ -59,13 +59,13 @@ export async function verifyContracts(
   return { ok: mismatches.length === 0, mismatches: mismatches.sort() };
 }
 
-export async function bumpContracts(contractDir: string, manifestPath: string): Promise<number> {
+export async function bumpInterfaces(interfaceDir: string, manifestPath: string): Promise<number> {
   const m = await loadManifest(manifestPath);
-  m.contractVersion += 1;
-  await fs.writeFile(join(contractDir, 'VERSION'), `${m.contractVersion}\n`, 'utf8');
-  m.contractHashes = await hashContracts(contractDir);
+  m.interfaceVersion += 1;
+  await fs.writeFile(join(interfaceDir, 'VERSION'), `${m.interfaceVersion}\n`, 'utf8');
+  m.interfaceHashes = await hashInterfaces(interfaceDir);
   await saveManifest(manifestPath, m);
-  return m.contractVersion;
+  return m.interfaceVersion;
 }
 
 export function computeAffected(tasks: TTask[], changedSymbols: string[]): string[] {

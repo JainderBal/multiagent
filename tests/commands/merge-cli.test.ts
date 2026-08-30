@@ -10,11 +10,11 @@ describe('mergeCommand summary', () => {
     // mergeAll returns before touching git — no repo needed.
     const p = join(await fs.mkdtemp(join(tmpdir(), 'ma-mc-')), 'manifest.json');
     await fs.writeFile(p, JSON.stringify({
-      run: 'r', spec: 's', adapter: 'typescript', contractVersion: 1, contractHashes: {},
+      run: 'r', spec: 's', adapter: 'typescript', interfaceVersion: 1, interfaceHashes: {},
       agents: [], tasks: [{
         name: 'a', branch: 'agent/a', worktree: '../r-a', sessionName: 'a',
         dependsOn: ['missing'], provides: [], consumes: [], status: 'done',
-        builtAtContractVersion: 1,
+        builtAtInterfaceVersion: 1,
       }],
     }));
     const summary = await mergeCommand(p, process.cwd(), 'main');

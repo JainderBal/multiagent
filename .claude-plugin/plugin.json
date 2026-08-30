@@ -1,8 +1,8 @@
 {
   "name": "multiagent",
   "displayName": "multiagent",
-  "version": "0.1.2",
-  "description": "Run parallel Claude Code agents against a frozen contract layer that prevents semantic merge conflicts before any agent starts.",
+  "version": "0.2.0",
+  "description": "Run parallel Claude Code agents against a frozen interface layer that prevents semantic merge conflicts before any agent starts.",
   "author": {
     "name": "JainderBal",
     "email": "baljainder1@gmail.com",
@@ -17,6 +17,6 @@
     "orchestration",
     "git-worktrees",
     "merge-conflicts",
-    "contract-lock"
+    "interface-lock"
   ]
 }

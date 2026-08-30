@@ -14,10 +14,10 @@ describe('buildManifest', () => {
         { name: 'api', dependsOn: ['shared-types'], consumes: ['N'] },
       ],
     });
-    expect(m.contractVersion).toBe(1);
+    expect(m.interfaceVersion).toBe(1);
     expect(m.tasks[1]).toMatchObject({
       name: 'api', branch: 'agent/api', worktree: '../repo-api', sessionName: 'api',
-      dependsOn: ['shared-types'], consumes: ['N'], status: 'pending', builtAtContractVersion: null,
+      dependsOn: ['shared-types'], consumes: ['N'], status: 'pending', builtAtInterfaceVersion: null,
     });
   });
 

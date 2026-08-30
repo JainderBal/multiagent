@@ -2,7 +2,7 @@ import { execa } from 'execa';
 import { join } from 'node:path';
 import { loadManifest, saveManifest } from './manifest.js';
 import { getMergeable } from './graph.js';
-import { verifyContracts } from './contracts.js';
+import { verifyInterfaces } from './interfaces.js';
 import type { LanguageAdapter } from '../adapters/language.js';
 
 export type MergeReport = {
@@ -16,7 +16,7 @@ export async function mergeAll(
   repoRoot: string,
   baseBranch: string,
   adapter: LanguageAdapter,
-  contractDir: string = join(repoRoot, 'packages', 'contracts'),
+  interfaceDir: string = join(repoRoot, 'packages', 'interfaces'),
   single = false,
 ): Promise<MergeReport> {
   const merged: string[] = [];
@@ -41,13 +41,13 @@ export async function mergeAll(
       return { merged, warnings, stoppedAt: { task: task.name, reason: 'merge conflict' } };
     }
 
-    if (Object.keys(m.contractHashes).length > 0) {
-      const v = await verifyContracts(contractDir, m);
+    if (Object.keys(m.interfaceHashes).length > 0) {
+      const v = await verifyInterfaces(interfaceDir, m);
       if (!v.ok) {
         await git(['reset', '--hard', 'HEAD~1']);
         return {
           merged, warnings,
-          stoppedAt: { task: task.name, reason: `contract violation: ${v.mismatches.join(', ')}` },
+          stoppedAt: { task: task.name, reason: `interface violation: ${v.mismatches.join(', ')}` },
         };
       }
     }
@@ -58,9 +58,9 @@ export async function mergeAll(
       return { merged, warnings, stoppedAt: { task: task.name, reason: `gate failed:\n${gate.output}` } };
     }
 
-    if (task.builtAtContractVersion !== null && task.builtAtContractVersion < m.contractVersion) {
+    if (task.builtAtInterfaceVersion !== null && task.builtAtInterfaceVersion < m.interfaceVersion) {
       warnings.push(
-        `${task.name} built at contract v${task.builtAtContractVersion}, current v${m.contractVersion}`,
+        `${task.name} built at interface v${task.builtAtInterfaceVersion}, current v${m.interfaceVersion}`,
       );
     }
 

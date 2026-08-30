@@ -8,8 +8,8 @@ const require = createRequire(import.meta.url);
 
 export class TypeScriptAdapter implements LanguageAdapter {
   id = 'typescript';
-  contractDir = 'packages/contracts';
-  contractGlobs = ['**/*.ts'];
+  interfaceDir = 'packages/interfaces';
+  interfaceGlobs = ['**/*.ts'];
 
   async detect(repoRoot: string): Promise<boolean> {
     try {

@@ -9,7 +9,7 @@
     {
       "name": "multiagent",
       "source": "./",
-      "description": "Run parallel Claude Code agents against a frozen contract layer that prevents semantic merge conflicts before any agent starts."
+      "description": "Run parallel Claude Code agents against a frozen interface layer that prevents semantic merge conflicts before any agent starts."
     }
   ]
 }

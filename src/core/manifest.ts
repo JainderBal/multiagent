@@ -19,15 +19,15 @@ export const Task = z.object({
   provides: z.array(z.string()),
   consumes: z.array(z.string()),
   status: z.enum(['pending', 'running', 'done', 'blocked', 'merged']),
-  builtAtContractVersion: z.number().int().nullable(),
+  builtAtInterfaceVersion: z.number().int().nullable(),
 });
 
 export const Manifest = z.object({
   run: z.string(),
   spec: z.string(),
   adapter: z.string(),
-  contractVersion: z.number().int(),
-  contractHashes: z.record(z.string()),
+  interfaceVersion: z.number().int(),
+  interfaceHashes: z.record(z.string()),
   agents: z.array(AgentConfig),
   tasks: z.array(Task),
 });

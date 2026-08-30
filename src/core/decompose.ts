@@ -36,7 +36,7 @@ export function buildManifest(d: Decomposition): TManifest {
       provides: t.provides ?? [],
       consumes: t.consumes ?? [],
       status: 'pending',
-      builtAtContractVersion: null,
+      builtAtInterfaceVersion: null,
     };
   });
 
@@ -47,8 +47,8 @@ export function buildManifest(d: Decomposition): TManifest {
     run: d.run,
     spec: d.spec,
     adapter: d.adapter,
-    contractVersion: 1,
-    contractHashes: {},
+    interfaceVersion: 1,
+    interfaceHashes: {},
     agents: [],
     tasks,
   };

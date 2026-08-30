@@ -8,8 +8,8 @@ const valid = {
   run: '2026-08-28-notifications',
   spec: 'notifications.md',
   adapter: 'typescript',
-  contractVersion: 1,
-  contractHashes: {},
+  interfaceVersion: 1,
+  interfaceHashes: {},
   agents: [],
   tasks: [
     {
@@ -21,7 +21,7 @@ const valid = {
       provides: ['Notification'],
       consumes: [],
       status: 'pending',
-      builtAtContractVersion: null,
+      builtAtInterfaceVersion: null,
     },
   ],
 };

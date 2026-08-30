@@ -38,10 +38,10 @@ async function repoWithBranches(): Promise<string> {
 function manifest(bStatus: 'done' | 'pending'): TManifest {
   const mk = (name: string, dependsOn: string[], status: TManifest['tasks'][number]['status']) => ({
     name, branch: `agent/${name}`, worktree: `../wt-${name}`, sessionName: name,
-    dependsOn, provides: [], consumes: [], status, builtAtContractVersion: 1,
+    dependsOn, provides: [], consumes: [], status, builtAtInterfaceVersion: 1,
   });
   return {
-    run: 'r', spec: 's', adapter: 'typescript', contractVersion: 1, contractHashes: {},
+    run: 'r', spec: 's', adapter: 'typescript', interfaceVersion: 1, interfaceHashes: {},
     agents: [], tasks: [mk('a', [], 'done'), mk('b', ['a'], bStatus)],
   } as TManifest;
 }
@@ -74,10 +74,10 @@ describe('mergeAll', () => {
   it('rolls back a merge whose gate fails and leaves the base clean', async () => {
     const mPath = join(root, 'manifest.json');
     const bad: TManifest = {
-      run: 'r', spec: 's', adapter: 'typescript', contractVersion: 1, contractHashes: {},
+      run: 'r', spec: 's', adapter: 'typescript', interfaceVersion: 1, interfaceHashes: {},
       agents: [], tasks: [{
         name: 'bad', branch: 'agent/bad', worktree: '../wt-bad', sessionName: 'bad',
-        dependsOn: [], provides: [], consumes: [], status: 'done', builtAtContractVersion: 1,
+        dependsOn: [], provides: [], consumes: [], status: 'done', builtAtInterfaceVersion: 1,
       }],
     };
     await saveManifest(mPath, bad);
