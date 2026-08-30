@@ -99,6 +99,7 @@ you. Each `->` is a point you control:
   dryrun      detailed brief per worker; they state a plan  -> you approve
   begin       agents build in parallel against the frozen interface
   merge       YOU authorize each merge (deliberate: one branch at a time, or auto)
+  run         wire a small entrypoint and start the app: multiagent run main.ts
   cleanup     remove worktrees; the run directory stays committed
 ```
 
@@ -118,6 +119,7 @@ The CLI (also usable directly):
 | `multiagent done <manifest> <task>` | mark a task built + ready to merge |
 | `multiagent merge <manifest> [--base <b>] [--one]` | gated merge in dependency order (`--one` = just the next eligible branch) |
 | `multiagent verify <manifest> [--interfaces <dir>]` | report interface drift |
+| `multiagent run <entrypoint> [args...]` | run the assembled app (a TS entrypoint via Node type-stripping) |
 | `multiagent cleanup <manifest>` | remove worktrees |
 | `multiagent measure <base> <branches...>` | conflict-rate experiment (see §5) |
 
@@ -188,8 +190,10 @@ without the tool. (This is why you can freeze *any* file, not just types.)
 - **`--auto` runs workers with permission prompts bypassed** — convenient and hands-free,
   but it lets an agent act without asking; use it deliberately.
 - **The pre-commit hook is bypassable.** The merge-time re-hash is the real gate.
-- **The tool produces modules, not a running app.** Wiring an entrypoint and running it
-  is the engineer's last step.
+- **Wiring the app is the engineer's step.** The tool produces modules; you write a
+  small entrypoint that injects the dependencies (the frozen interface makes it a few
+  lines), then `multiagent run main.ts` starts it. Its imports need explicit `.ts`
+  extensions, and `run` needs Node 22.6+ (native type stripping).
 
 ## 7. Architecture
 

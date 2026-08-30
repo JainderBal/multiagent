@@ -10,6 +10,7 @@ import { agentsCommand } from './commands/agents.js';
 import { initCommand } from './commands/init.js';
 import { measureCommand } from './commands/measure.js';
 import { doneCommand } from './commands/done.js';
+import { runCommand } from './commands/run.js';
 import { verifyInterfaces } from './core/interfaces.js';
 import { loadManifest } from './core/manifest.js';
 import { getAdapter } from './adapters/registry.js';
@@ -43,6 +44,13 @@ program
   .description('Mark a task done (built at the current interface version) so it can be merged.')
   .action(async (manifest: string, task: string) => {
     console.log(await doneCommand(manifest, task));
+  });
+
+program
+  .command('run <entrypoint> [args...]')
+  .description('Run the assembled app: a TS entrypoint via Node type-stripping (imports need .ts extensions).')
+  .action(async (entrypoint: string, args: string[]) => {
+    process.exit(await runCommand(entrypoint, args ?? [], process.cwd()));
   });
 
 program

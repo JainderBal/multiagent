@@ -118,6 +118,17 @@ deliberate mode never merge more than the one branch they just approved. After m
 `multiagent cleanup <manifest>` removes the worktrees; the run directory stays committed
 as the audit trail.
 
+## 7. Assemble and run
+
+After the branches merge, the modules are integrated but nothing wires them together
+yet. Write a small entrypoint (e.g. `main.ts` at the repo root) that imports each
+module's concrete export and injects dependencies through the frozen interface — the
+interface is what makes this a few lines — then starts the app. **Its relative imports
+must use explicit `.ts` extensions** (e.g. `import { TodoService } from
+'./packages/api/service.ts'`) so it runs under Node's type stripping. Run it with
+`multiagent run main.ts`. This wiring is integration — the engineer's step, not a
+worker's.
+
 ## Custom agents (optional)
 
 At init you may propose custom agents from the spec and repo (no presets); the human

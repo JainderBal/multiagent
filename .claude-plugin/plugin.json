@@ -1,7 +1,7 @@
 {
   "name": "multiagent",
   "displayName": "multiagent",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Run parallel Claude Code agents against a frozen interface layer that prevents semantic merge conflicts before any agent starts.",
   "author": {
     "name": "JainderBal",
