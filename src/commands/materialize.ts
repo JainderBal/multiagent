@@ -15,6 +15,11 @@ export async function materialize(
   // Opt-in: launch workers that act on the orchestrator's messages without
   // stopping at tool-permission prompts. The default stays interactive.
   const workerFlags = autonomous ? ' --permission-mode bypassPermissions' : '';
+
+  // Phase 1 — create every worktree and pre-accept its folder-trust dialog
+  // BEFORE launching any worker. Interleaving worktree creation with running
+  // workers lets a worker's git lock the shared .git/config while the next
+  // createWorktree writes it, which fails with "Permission denied" on Windows.
   for (const t of m.tasks) {
     await createWorktree({
       repoRoot,
@@ -23,11 +28,14 @@ export async function materialize(
       userName: `orchestrator/${t.name}`,
       userEmail: `${t.name}@orchestrator.local`,
     });
-    // Pre-accept the folder-trust dialog for this worktree so the session
-    // starts without prompting.
     await trustFolder(t.worktree);
-    // Short banner shown in the tab before Claude starts: the task, its
-    // worktree, and that this is the dry-run stage.
+  }
+
+  // Phase 2 — install the contract hook once, while the repo is still quiet.
+  await installContractHook(repoRoot, contractDirRel);
+
+  // Phase 3 — now open a terminal + Claude session per task.
+  for (const t of m.tasks) {
     const banner =
       `echo [${t.name}] worktree: ${t.worktree} - DRY RUN: state your plan, do not write yet`;
     await terminals.open({
@@ -37,6 +45,5 @@ export async function materialize(
     });
     t.status = 'running';
   }
-  await installContractHook(repoRoot, contractDirRel);
   await saveManifest(manifestPath, m);
 }
