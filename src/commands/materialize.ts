@@ -9,8 +9,12 @@ export async function materialize(
   repoRoot: string,
   terminals: Terminals,
   contractDirRel = 'packages/contracts',
+  autonomous = false,
 ): Promise<void> {
   const m = await loadManifest(manifestPath);
+  // Opt-in: launch workers that act on the orchestrator's messages without
+  // stopping at tool-permission prompts. The default stays interactive.
+  const workerFlags = autonomous ? ' --permission-mode bypassPermissions' : '';
   for (const t of m.tasks) {
     await createWorktree({
       repoRoot,
@@ -29,7 +33,7 @@ export async function materialize(
     await terminals.open({
       title: t.sessionName,
       cwd: t.worktree,
-      command: `${banner} & claude --name ${t.sessionName}`,
+      command: `${banner} & claude --name ${t.sessionName}${workerFlags}`,
     });
     t.status = 'running';
   }

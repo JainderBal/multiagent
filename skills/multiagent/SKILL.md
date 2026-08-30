@@ -22,8 +22,10 @@ human's behalf — stop and wait for the human each time:**
    and re-present until they explicitly approve),
 3. the dry-run intent plans.
 
-**Merging is the human's job, not yours.** You hand off; the human reviews branches
-and runs the merge.
+**Every merge is authorized by the human.** You never merge unprompted; the human
+reviews branches and tells you when to merge. You may then run the merge command on
+their say-so — one eligible branch at a time in deliberate mode, or all of them if they
+choose auto (see §6).
 
 ## 1. Decompose (Checkpoint 1)
 
@@ -53,7 +55,10 @@ file), then commit so the worktrees inherit the frozen contract.
 
 `multiagent materialize <manifest>` creates one git worktree + one terminal window per
 task (each running `claude --name <task>`) and installs the contract pre-commit hook.
-Confirm with `ListAgents` that each worker is reachable by its `--name`.
+Add `--auto` to launch the workers hands-free — they act on your messages without
+stopping at tool-permission prompts (convenient for an unattended run; skip it if you
+want to approve each worker action). Confirm with `ListAgents` that each worker is
+reachable by its `--name`.
 
 ## 4. Dry run — brief each worker IN DETAIL (Checkpoint 3)
 
@@ -88,19 +93,30 @@ needs a contract change writes `requests/<task>.md` and stops; surface it to the
 and on approval bump the contract version, re-hash, and message **only the affected
 agents** (by `provides`/`consumes`) to re-read.
 
-## 6. Hand off to the human for merge — you do NOT merge
+## 6. Merge — only on the human's say-so, never unprompted
 
-When workers report `done`, run `multiagent status <manifest>` and present it (it marks
-which tasks are `-> mergeable`). Then **stop and hand off.** Tell the human to:
+Merging is the moment code lands, so the human authorizes every merge. When workers
+report `done`, run `multiagent status <manifest>` and present it (it marks which tasks
+are `-> mergeable`). Ask the human which mode they want:
 
-- review each branch — open its worktree, or `git diff <base>..agent/<task>`, and
-- run the merge **themselves**: `multiagent merge <manifest> --base <branch>`, which
-  merges in dependency order behind a typecheck + contract-rehash gate and rolls back
-  any branch that fails or tampered with a frozen file.
+- **Deliberate (default) — branch by branch, in sequence.** Show the dependency
+  sequence and name the next branch that is *eligible* (its dependencies are already
+  merged), e.g. "`agent/model` is ready — merge it?". Only ever offer an eligible
+  branch. On the human's approval run
+  `multiagent merge <manifest> --base <branch> --one` — it merges just that one next
+  eligible branch behind the typecheck + contract-rehash gate, then stops. Report the
+  result, then present the next eligible branch and ask again. Repeat until none remain
+  or the human stops. If a merge is rolled back (gate fail or contract violation),
+  surface why and stop.
+- **Auto — merge everything now.** Only if the human explicitly chooses it, run
+  `multiagent merge <manifest> --base <branch>` once (all eligible, dependency-ordered,
+  same gate).
 
-**Never run `multiagent merge` yourself.** After the human has merged,
-`multiagent cleanup <manifest>` removes the worktrees; the run directory stays
-committed as the audit trail.
+You may run the merge command **because the human told you to** (that is not "you
+merging on your own") — but never merge without that explicit go-ahead, and in
+deliberate mode never merge more than the one branch they just approved. After merging,
+`multiagent cleanup <manifest>` removes the worktrees; the run directory stays committed
+as the audit trail.
 
 ## Custom agents (optional)
 
@@ -112,7 +128,8 @@ agents (e.g. a reviewer) before the human merges a branch.
 
 ## Rules
 
-Never edit a worker's files. Never merge. Never auto-approve a checkpoint. Coordinate
+Never edit a worker's files. Never merge unprompted (only on the human's explicit
+go-ahead, §6). Never auto-approve a checkpoint. Coordinate
 only by messaging and the committed manifest/`status`/`requests` files. Messages carry
 signals, pointers, and **detailed briefs** — never code bodies. The task name is
 identical across branch (`agent/<task>`), worktree, session `--name`, terminal title,

@@ -20,8 +20,9 @@ program.name('multiagent').description('Parallel Claude Code agents with a froze
 program
   .command('materialize <manifest>')
   .description('Create a worktree and terminal per task.')
-  .action(async (manifest: string) => {
-    await materialize(manifest, process.cwd(), new WindowsTerminals());
+  .option('--auto', 'launch workers in autonomous (bypassPermissions) mode', false)
+  .action(async (manifest: string, opts: { auto: boolean }) => {
+    await materialize(manifest, process.cwd(), new WindowsTerminals(), 'packages/contracts', opts.auto);
   });
 
 program
@@ -81,8 +82,9 @@ program
   .command('merge <manifest>')
   .description('Merge eligible task branches in dependency order with a typecheck gate.')
   .option('--base <branch>', 'base branch to merge into', 'main')
-  .action(async (manifest: string, opts: { base: string }) => {
-    console.log(await mergeCommand(manifest, process.cwd(), opts.base));
+  .option('--one', 'merge only the next eligible branch, then stop (deliberate mode)', false)
+  .action(async (manifest: string, opts: { base: string; one: boolean }) => {
+    console.log(await mergeCommand(manifest, process.cwd(), opts.base, opts.one));
   });
 
 program

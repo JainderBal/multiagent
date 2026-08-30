@@ -17,6 +17,7 @@ export async function mergeAll(
   baseBranch: string,
   adapter: LanguageAdapter,
   contractDir: string = join(repoRoot, 'packages', 'contracts'),
+  single = false,
 ): Promise<MergeReport> {
   const merged: string[] = [];
   const warnings: string[] = [];
@@ -66,5 +67,9 @@ export async function mergeAll(
     task.status = 'merged';
     await saveManifest(manifestPath, m);
     merged.push(task.name);
+
+    // Deliberate mode: merge exactly one eligible branch, then hand back to the
+    // human to review and approve the next one.
+    if (single) return { merged, warnings };
   }
 }
