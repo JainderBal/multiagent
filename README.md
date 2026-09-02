@@ -10,6 +10,29 @@ starts.
 
 Windows-first. Shipped as a Claude Code plugin (`/multiagent`).
 
+## Install
+
+**Needs:** Windows · Claude Code v2.1.234+ · Node 20+ (22.6+ for `multiagent run`) ·
+Windows Terminal · git.
+
+Two parts — the **CLI** (so `multiagent` is on your PATH) and the **plugin** (the
+`/multiagent` skill). Both are required; the skill calls the CLI.
+
+```bash
+# 1) the CLI
+git clone https://github.com/JainderBal/multiagent
+cd multiagent && pnpm install && pnpm build && npm link   # `multiagent` now on PATH
+```
+
+```text
+# 2) the plugin — run these inside Claude Code, then restart Claude Code
+/plugin marketplace add JainderBal/multiagent
+/plugin install multiagent
+```
+
+Then, from a repo you want to build in, run `/multiagent <spec.md>` — see
+[§4 Quickstart](#4-quickstart).
+
 ---
 
 ## 1. The problem
@@ -70,26 +93,9 @@ semantic conflict has nowhere to form.
 
 ## 4. Quickstart
 
-**Requirements:** Node 20+, Windows Terminal (`wt.exe`), and **Claude Code v2.1.234+ on
-Windows** (for cross-session messaging, the coordination substrate).
-
-Install the CLI:
-
-```bash
-git clone https://github.com/JainderBal/multiagent
-cd multiagent && pnpm install && pnpm build && npm link   # puts `multiagent` on PATH
-```
-
-Install the plugin (so the `/multiagent` orchestrator is available):
-
-```
-/plugin marketplace add JainderBal/multiagent
-/plugin install multiagent
-```
-
-Then, from a repo you want to work on, run `/multiagent <spec.md>`. You are the
-**engineer**; the orchestrator drives the pipeline and stops at three checkpoints for
-you. Each `->` is a point you control:
+After [installing](#install), run `/multiagent <spec.md>` from the repo you want to work
+on. You are the **engineer**; the orchestrator drives the pipeline and stops at three
+checkpoints for you. Each `->` is a point you control:
 
 ```
 /multiagent <spec.md>
